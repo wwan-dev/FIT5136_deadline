@@ -23,6 +23,7 @@ class AppointmentController:
         """
         self.__appointment_service = AppointmentService()
         self.__current_user = user
+        self.__should_return_to_main = False  # 是否返回主菜单标志
     
     def clear_screen(self):
         """清屏"""
@@ -39,6 +40,32 @@ class AppointmentController:
         """等待用户按键"""
         input("\n按回车键继续...")
     
+    def print_navigation_options(self, has_default=True, default_text=""):
+        """打印导航选项
+        
+        Args:
+            has_default (bool): 是否有默认选项
+            default_text (str): 默认选项文本
+        """
+        print("\n0. 返回上一级")
+        print("-. 返回主菜单")
+        if has_default and default_text:
+            print(f"直接按回车{default_text}")
+    
+    def handle_navigation_choice(self, choice: str) -> int:
+        """处理导航选择
+        
+        Args:
+            choice (str): 用户输入
+            
+        Returns:
+            int: 0表示返回上一级，-1表示返回主菜单，其他值为实际选择
+        """
+        if choice == "-":
+            self.__should_return_to_main = True
+            return -1
+        return 0 if choice == "0" else 1
+    
     def get_clinic_selection(self, default_option: bool = True) -> Optional[int]:
         """显示诊所选择界面
         
@@ -47,6 +74,7 @@ class AppointmentController:
             
         Returns:
             Optional[int]: 选择的诊所ID，如果选择所有诊所则返回None
+                          返回-1表示返回上一级，如果self.__should_return_to_main为True则表示返回主菜单
         """
         self.print_header("选择诊所")
         
@@ -55,7 +83,7 @@ class AppointmentController:
         if not clinics:
             print("没有找到诊所记录")
             self.wait_for_key()
-            return None
+            return -1
         
         print(f"{'ID':<5}{'名称':<15}{'区域':<10}{'地址':<20}{'电话':<15}")
         print("-" * 65)
@@ -65,8 +93,10 @@ class AppointmentController:
         
         option_text = "\n请选择诊所ID"
         if default_option:
-            option_text += "，或输入0查看所有诊所"
-        option_text += "，或输入-1返回"
+            option_text += "，或输入0查看所有诊所/返回上一级"
+        else:
+            option_text += "，或输入0返回上一级"
+        option_text += "，输入-返回主菜单"
         option_text += "，直接按回车默认查看所有诊所: "
         
         print(option_text, end="")
@@ -75,11 +105,12 @@ class AppointmentController:
         if choice == "":
             return None  # 直接按回车默认查看所有诊所
         
-        if choice == "-1":
+        if choice == "-":
+            self.__should_return_to_main = True
             return -1
         
-        if default_option and choice == "0":
-            return None
+        if choice == "0":
+            return -1 if not default_option else None
         
         try:
             clinic_id = int(choice)
@@ -104,6 +135,7 @@ class AppointmentController:
             
         Returns:
             Optional[int]: 选择的医生ID，如果选择所有医生则返回None
+                          返回-1表示返回上一级，如果self.__should_return_to_main为True则表示返回主菜单
         """
         self.print_header("选择医生")
         
@@ -117,7 +149,7 @@ class AppointmentController:
         if not doctors:
             print("没有找到医生记录")
             self.wait_for_key()
-            return None
+            return -1
         
         print(f"{'ID':<5}{'姓名':<15}{'电子邮箱':<25}{'专业':<20}")
         print("-" * 65)
@@ -128,8 +160,10 @@ class AppointmentController:
         
         option_text = "\n请选择医生ID"
         if default_option:
-            option_text += "，或输入0查看所有医生"
-        option_text += "，或输入-1返回"
+            option_text += "，或输入0查看所有医生/返回上一级"
+        else:
+            option_text += "，或输入0返回上一级"
+        option_text += "，输入-返回主菜单"
         option_text += "，直接按回车默认查看所有医生: "
         
         print(option_text, end="")
@@ -138,11 +172,12 @@ class AppointmentController:
         if choice == "":
             return None  # 直接按回车默认查看所有医生
         
-        if choice == "-1":
+        if choice == "-":
+            self.__should_return_to_main = True
             return -1
         
-        if default_option and choice == "0":
-            return None
+        if choice == "0":
+            return -1 if not default_option else None
         
         try:
             doctor_id = int(choice)
@@ -167,6 +202,7 @@ class AppointmentController:
             
         Returns:
             Optional[str]: 选择的日期，格式为YYYY-MM-DD，如果选择所有日期则返回None
+                          返回-1表示返回上一级，如果self.__should_return_to_main为True则表示返回主菜单
         """
         self.print_header("选择日期")
         
@@ -194,8 +230,10 @@ class AppointmentController:
         
         option_text = "\n请输入日期(YYYY-MM-DD)"
         if default_option:
-            option_text += "，或输入0查看所有日期"
-        option_text += "，或输入-1返回"
+            option_text += "，或输入0查看所有日期/返回上一级"
+        else:
+            option_text += "，或输入0返回上一级"
+        option_text += "，输入-返回主菜单"
         option_text += f"，直接按回车默认选择今天({today}): "
         
         print(option_text, end="")
@@ -204,11 +242,12 @@ class AppointmentController:
         if choice == "":
             return today  # 直接按回车默认选择今天
         
-        if choice == "-1":
+        if choice == "-":
+            self.__should_return_to_main = True
             return -1
         
-        if default_option and choice == "0":
-            return None
+        if choice == "0":
+            return -1 if not default_option else None
         
         if not self.__appointment_service.is_valid_date(choice):
             print("无效的日期格式，请使用YYYY-MM-DD格式")
@@ -229,7 +268,9 @@ class AppointmentController:
             params (Dict[str, Any], optional): 参数字典，可包含doctor_id, clinic_id, date
             
         Returns:
-            Optional[Tuple[str, int, int, int]]: (日期, 时间槽, 医生ID, 诊所ID)元组，如果用户取消则返回None
+            Optional[Tuple[str, int, int, int]]: (日期, 时间槽, 医生ID, 诊所ID)元组
+                                               如果用户取消则返回None
+                                               如果self.__should_return_to_main为True则表示返回主菜单
         """
         params = params or {}
         
@@ -241,19 +282,19 @@ class AppointmentController:
         # 如果未指定诊所，让用户选择
         if clinic_id is None:
             clinic_id = self.get_clinic_selection()
-            if clinic_id == -1:  # 用户取消
+            if clinic_id == -1:  # 用户取消或返回主菜单
                 return None
         
         # 如果未指定医生，让用户选择
         if doctor_id is None:
             doctor_id = self.get_doctor_selection(clinic_id)
-            if doctor_id == -1:  # 用户取消
+            if doctor_id == -1:  # 用户取消或返回主菜单
                 return None
         
         # 如果未指定日期，让用户选择
         if date is None:
             date = self.get_date_selection()
-            if date == -1:  # 用户取消
+            if date == -1:  # 用户取消或返回主菜单
                 return None
         
         # 如果未指定任何筛选条件，需要用户至少选择一个
@@ -281,11 +322,15 @@ class AppointmentController:
             print(f"{option_index:2}. {date_str:<12} {day_of_week:<10} {clinic_name:<15} {doctor_name:<15} {time_str}")
             option_index += 1
         
-        print("\n请选择时间槽编号，或输入0返回，按回车默认选择第一个: ", end="")
+        print("\n请选择时间槽编号，或输入0返回上一级，输入-返回主菜单，按回车默认选择第一个: ", end="")
         choice = input()
         
         if choice == "":
             return available_slots_data[0][:4]  # 默认选择第一个可用时间槽 (仅返回日期, 时间槽, 医生ID, 诊所ID)
+        
+        if choice == "-":
+            self.__should_return_to_main = True
+            return None
         
         if choice == "0":
             return None
@@ -331,9 +376,16 @@ class AppointmentController:
             reason = "常规预约"  # 默认预约原因
         
         # 确认预约
-        print("\n请确认预约信息 (Y/N，按回车默认为Y): ", end="")
+        print("\n请确认预约信息 (Y/N)，或输入0返回上一级，输入-返回主菜单，按回车默认为Y: ", end="")
         confirm = input().strip().upper()
         
+        if confirm == "-":
+            self.__should_return_to_main = True
+            return
+            
+        if confirm == "0":
+            return
+            
         if confirm == "" or confirm == "Y":
             try:
                 # 创建预约
@@ -380,13 +432,14 @@ class AppointmentController:
         for appointment in appointments:
             print(f"{appointment['id']:<5}{appointment['date']:<15}{appointment['time_str']:<20}{appointment['clinic_name']:<15}{appointment['doctor_name']:<15}{appointment['status']:<15}")
         
-        print("\n请选择预约ID查看详情，或输入0返回，按回车默认返回: ", end="")
+        print("\n请选择预约ID查看详情，或输入0返回上一级，输入-返回主菜单，按回车默认返回: ", end="")
         choice = input()
         
-        if choice == "":
+        if choice == "-":
+            self.__should_return_to_main = True
             return
-        
-        if choice == "0":
+            
+        if choice == "" or choice == "0":
             return
         
         try:
@@ -425,16 +478,29 @@ class AppointmentController:
         # 只有未完成的预约才能取消
         if appointment_details['can_cancel']:
             print("\n1. 取消预约")
-            print("0. 返回")
+            print("0. 返回上一级")
+            print("-. 返回主菜单")
             
             choice = input("\n请选择操作，按回车默认返回: ")
             
+            if choice == "-":
+                self.__should_return_to_main = True
+                return
+                
             if choice == "" or choice == "0":
                 return
             
             if choice == "1":
                 self.cancel_appointment(appointment_details['appointment_obj'])
         else:
+            print("\n0. 返回上一级")
+            print("-. 返回主菜单")
+            choice = input("\n请选择操作，按回车默认返回: ")
+            
+            if choice == "-":
+                self.__should_return_to_main = True
+                return
+                
             self.wait_for_key()
     
     def cancel_appointment(self, appointment) -> None:
@@ -443,10 +509,14 @@ class AppointmentController:
         Args:
             appointment: 预约对象
         """
-        print("\n确认取消预约 (Y/N，按回车默认为N): ", end="")
+        print("\n确认取消预约 (Y/N)，或输入0返回上一级，输入-返回主菜单，按回车默认为N: ", end="")
         confirm = input().strip().upper()
         
-        if confirm == "":
+        if confirm == "-":
+            self.__should_return_to_main = True
+            return
+            
+        if confirm == "0" or confirm == "":
             print("操作已取消")
             self.wait_for_key()
             return
@@ -524,10 +594,15 @@ class AppointmentController:
         print("5. 按诊所和日期筛选")
         print("6. 按医生和日期筛选")
         print("7. 按诊所、医生和日期筛选")
-        print("0. 返回")
+        print("0. 返回上一级")
+        print("-. 返回主菜单")
         
         choice = input("\n请选择: ")
         
+        if choice == "-":
+            self.__should_return_to_main = True
+            return
+            
         if choice == "0":
             return
         
@@ -536,18 +611,24 @@ class AppointmentController:
         if choice in ["1", "4", "5", "7"]:
             clinic_id = self.get_clinic_selection()
             if clinic_id == -1:
+                if self.__should_return_to_main:
+                    return
                 return
             params['clinic_id'] = clinic_id
         
         if choice in ["2", "4", "6", "7"]:
             doctor_id = self.get_doctor_selection(params.get('clinic_id'))
             if doctor_id == -1:
+                if self.__should_return_to_main:
+                    return
                 return
             params['doctor_id'] = doctor_id
         
         if choice in ["3", "5", "6", "7"]:
             date = self.get_date_selection(future_only=False)
             if date == -1:
+                if self.__should_return_to_main:
+                    return
                 return
             params['date'] = date
         
@@ -576,13 +657,14 @@ class AppointmentController:
         for appointment in appointments:
             print(f"{appointment['id']:<5}{appointment['date']:<15}{appointment['time_str']:<20}{appointment['clinic_name']:<15}{appointment['doctor_name']:<15}{appointment['status']:<15}")
         
-        print("\n请选择预约ID查看详情，或输入0返回，按回车默认返回: ", end="")
+        print("\n请选择预约ID查看详情，或输入0返回上一级，输入-返回主菜单，按回车默认返回: ", end="")
         choice = input()
         
-        if choice == "":
+        if choice == "-":
+            self.__should_return_to_main = True
             return
-        
-        if choice == "0":
+            
+        if choice == "" or choice == "0":
             return
         
         try:
@@ -604,7 +686,12 @@ class AppointmentController:
         Args:
             user (User): 当前用户
         """
+        self.__should_return_to_main = False  # 重置返回主菜单标志
+        
         while True:
+            if self.__should_return_to_main:
+                break
+                
             self.print_header(f"预约菜单 - {user.name}")
             
             print("1. 查询可用时间槽并预约")
@@ -612,7 +699,8 @@ class AppointmentController:
             print("3. 查看即将到来的预约")
             print("4. 查看历史预约")
             print("5. 搜索预约")
-            print("0. 返回")
+            print("0. 返回上一级")
+            print("-. 返回主菜单")
             
             choice = input("\n请选择操作: ")
             
@@ -627,6 +715,9 @@ class AppointmentController:
             elif choice == "5":
                 self.search_appointments(user)
             elif choice == "0":
+                break
+            elif choice == "-":
+                self.__should_return_to_main = True
                 break
             else:
                 print("无效的选择")
@@ -661,3 +752,6 @@ class AppointmentController:
             return
             
         self.run_appointment_menu(self.__current_user)
+        
+        # 返回标志，供调用者判断是返回上一级还是返回主菜单
+        return self.__should_return_to_main
