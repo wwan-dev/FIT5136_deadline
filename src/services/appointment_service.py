@@ -416,8 +416,12 @@ class AppointmentService:
         Returns:
             List[Dict]: 预约信息字典列表
         """
-        # 获取当前用户的预约
-        appointments = self.__appointment_repo.get_by_user(user_id)
+        # 管理员用户（ID为-1）可以查看所有预约
+        if user_id == -1:
+            appointments = self.__appointment_repo.get_all()
+        else:
+            # 普通用户只能查看自己的预约
+            appointments = self.__appointment_repo.get_by_user(user_id)
         
         # 筛选预约
         filtered_appointments = []
@@ -438,6 +442,7 @@ class AppointmentService:
             
             filtered_appointments.append({
                 "id": appointment.id,
+                "user_id": appointment.user_id,
                 "date": appointment.date,
                 "time_slot": appointment.time_slot,
                 "time_str": time_str,
@@ -493,7 +498,7 @@ class AppointmentService:
 
     def _search_as_admin(self) -> None:
         """管理员筛选预约（不限制 user_id）"""
-        dummy_user = User(user_id=-1)  # 用于绕过 user_id 限制
+        dummy_user = User(id=-1)  # 用于绕过 user_id 限制
         self.search_appointments(dummy_user)
 
     def get_all_appointments(self) -> List[Dict]:

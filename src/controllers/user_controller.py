@@ -70,7 +70,6 @@ class UserController:
                 print("Invalid choice.")
 
     # ─────────────────────── 管理员菜单 ───────────────────────
-    # ─────────────────────── 管理员菜单 ───────────────────────
     def _admin_menu(self) -> None:
         while True:
             print("\n===== Admin Menu =====")
@@ -89,7 +88,9 @@ class UserController:
                 # 直接进入预约管理子菜单（全局权限）
                 try:
                     from src.controllers.appointment_controller import AppointmentController
-                    AppointmentController().run_admin_menu()
+                    return_to_main = AppointmentController().run_admin_menu()
+                    if return_to_main:
+                        return  # 直接返回登录界面
                 except ModuleNotFoundError:
                     print("Appointment module not ready.")
                 except Exception as e:

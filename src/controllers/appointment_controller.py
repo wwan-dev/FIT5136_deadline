@@ -546,22 +546,73 @@ class AppointmentController:
         for appt in appointments:
             print(f"{appt['id']:<5}{appt['user_id']:<8}{appt['date']:<12}{appt['time_str']:<18}"
                   f"{appt['doctor_name']:<15}{appt['clinic_name']:<15}{appt['status']:<12}")
+        
+        print("\n请选择预约ID查看详情，或按0返回: ", end="")
+        choice = input().strip()
+        
+        if choice == "0" or choice == "":
+            return
+            
+        try:
+            appt_id = int(choice)
+            appt_details = self.__appointment_service.get_appointment_details(appt_id)
+            if appt_details:
+                self.show_appointment_details(appt_details)
+                
+                # 提供取消选项
+                if appt_details.get('status') == "已预约":
+                    if input("\n是否取消此预约? (Y/N): ").strip().upper() == "Y":
+                        appointment = self.__appointment_service.get_appointment_by_id(appt_id)
+                        if appointment:
+                            if self.__appointment_service.cancel_appointment(appointment):
+                                print("预约已成功取消")
+                            else:
+                                print("取消预约失败")
+                        else:
+                            print("无法获取预约信息")
+            else:
+                print("无效的预约ID")
+        except ValueError:
+            print("请输入有效的数字")
+            
         self.wait_for_key()
 
     def _cancel_by_id(self) -> None:
         """管理员手动取消任意预约"""
+        self.print_header("按ID取消预约")
+        
         try:
             appt_id = int(input("\n输入要取消的预约ID（0返回）: ").strip())
             if appt_id == 0:
                 return
+                
             appointment = self.__appointment_service.get_appointment_by_id(appt_id)
-            if not appointment or not appointment.is_scheduled():
-                print("预约不存在或状态不可取消")
+            if not appointment:
+                print("预约不存在")
                 self.wait_for_key()
                 return
-            if input("确认取消该预约？(Y/N): ").strip().upper() == "Y":
+                
+            # 获取详细信息并显示
+            appt_details = self.__appointment_service.get_appointment_details(appt_id)
+            if appt_details:
+                print("\n预约详情:")
+                print(f"ID: {appt_details['id']}")
+                print(f"用户ID: {appt_details['user_id']}")
+                print(f"用户姓名: {appt_details.get('user_name', '未知')}")
+                print(f"日期: {appt_details['date']}")
+                print(f"时间: {appt_details['time_str']}")
+                print(f"诊所: {appt_details['clinic_name']}")
+                print(f"医生: {appt_details['doctor_name']}")
+                print(f"当前状态: {appt_details['status']}")
+            
+            if not appointment.is_scheduled():
+                print("\n此预约状态不可取消（可能已被取消或已完成）")
+                self.wait_for_key()
+                return
+                
+            if input("\n确认取消该预约？(Y/N): ").strip().upper() == "Y":
                 if self.__appointment_service.cancel_appointment(appointment):
-                    print("已取消")
+                    print("预约已成功取消")
                 else:
                     print("取消失败")
             else:
@@ -648,11 +699,11 @@ class AppointmentController:
             self.wait_for_key()
             return
         
-        print(f"{'ID':<5}{'日期':<15}{'时间':<20}{'诊所':<15}{'医生':<15}{'状态':<15}")
-        print("-" * 85)
+        print(f"{'ID':<5}{'用户ID':<8}{'日期':<15}{'时间':<20}{'诊所':<15}{'医生':<15}{'状态':<15}")
+        print("-" * 95)
         
         for appointment in appointments:
-            print(f"{appointment['id']:<5}{appointment['date']:<15}{appointment['time_str']:<20}{appointment['clinic_name']:<15}{appointment['doctor_name']:<15}{appointment['status']:<15}")
+            print(f"{appointment['id']:<5}{appointment['user_id']:<8}{appointment['date']:<15}{appointment['time_str']:<20}{appointment['clinic_name']:<15}{appointment['doctor_name']:<15}{appointment['status']:<15}")
         
         print("\n请选择预约ID查看详情，或输入0返回上一级，输入-返回主菜单，按回车默认返回: ", end="")
         choice = input()
@@ -668,7 +719,8 @@ class AppointmentController:
             appointment_id = int(choice)
             appointment_details = self.__appointment_service.get_appointment_details(appointment_id)
             
-            if appointment_details and appointment_details['user_id'] == user.id:
+            # 允许管理员（user.id为-1）查看所有预约详情
+            if appointment_details and (appointment_details['user_id'] == user.id or user.id == -1):
                 self.show_appointment_details(appointment_details)
             else:
                 print("无效的预约ID或您无权查看此预约")
@@ -676,7 +728,7 @@ class AppointmentController:
         except ValueError:
             print("请输入有效的数字")
             self.wait_for_key()
-    
+
     def run_appointment_menu(self, user: User) -> None:
         """运行预约菜单
         
@@ -722,12 +774,18 @@ class AppointmentController:
 
     def run_admin_menu(self) -> None:
         """管理员预约管理菜单"""
+        self.__should_return_to_main = False  # 重置返回主菜单标志
+        
         while True:
+            if self.__should_return_to_main:
+                break
+                
             self.print_header("预约管理 - 管理员")
             print("1. 查看全部预约")
             print("2. 按条件筛选预约")
             print("3. 按ID取消预约")
             print("0. 返回上一级")
+            print("-. 返回主菜单")
             choice = input("\n请选择操作: ").strip()
 
             if choice == "1":
@@ -738,9 +796,14 @@ class AppointmentController:
                 self._cancel_by_id()
             elif choice == "0":
                 break
+            elif choice == "-":
+                self.__should_return_to_main = True
+                break
             else:
                 print("无效选项")
                 self.wait_for_key()
+        
+        return self.__should_return_to_main  # 返回标志，供调用者判断是否返回主菜单
 
     def run(self):
         """运行预约菜单（兼容UserController的调用方式）"""

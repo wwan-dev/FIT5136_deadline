@@ -5,7 +5,7 @@
 项目入口脚本
 """
 
-from src.main import main
+from src.controllers.user_controller import UserController
 
 if __name__ == "__main__":
-    main() 
+    UserController().run() 
