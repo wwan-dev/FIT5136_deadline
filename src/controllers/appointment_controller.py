@@ -2,27 +2,18 @@
 # -*- coding: utf-8 -*-
 
 """
-预约控制器类
+预约控制器类 - 处理预约相关的用户界面和交互
 """
 
 import os
-from datetime import datetime
-from typing import List, Tuple, Optional, Dict, Any
+from typing import Optional, Dict, Any, Tuple, List
 
 from src.entities.user import User
-from src.entities.appointment import Appointment
-from src.entities.notification import Notification
-from src.repositories.appointment_repository import AppointmentRepository
-from src.repositories.clinic_repository import ClinicRepository
-from src.repositories.doctor_repository import DoctorRepository
-from src.repositories.notification_repository import NotificationRepository
-from src.repositories.doctor_schedule_repository import DoctorScheduleRepository
-from src.repositories.user_repository import UserRepository
-from src.utils.date_util import DateUtil
+from src.services.appointment_service import AppointmentService
 
 
 class AppointmentController:
-    """预约控制器类"""
+    """预约控制器类 - 处理预约相关的用户界面和交互"""
     
     def __init__(self, user=None):
         """初始化预约控制器
@@ -30,11 +21,7 @@ class AppointmentController:
         Args:
             user (User, optional): 当前用户. Defaults to None.
         """
-        self.__appointment_repo = AppointmentRepository()
-        self.__clinic_repo = ClinicRepository()
-        self.__doctor_repo = DoctorRepository()
-        self.__schedule_repo = DoctorScheduleRepository()
-        self.__notification_repo = NotificationRepository()
+        self.__appointment_service = AppointmentService()
         self.__current_user = user
     
     def clear_screen(self):
@@ -63,7 +50,7 @@ class AppointmentController:
         """
         self.print_header("选择诊所")
         
-        clinics = self.__clinic_repo.get_all()
+        clinics = self.__appointment_service.get_all_clinics()
         
         if not clinics:
             print("没有找到诊所记录")
@@ -96,7 +83,7 @@ class AppointmentController:
         
         try:
             clinic_id = int(choice)
-            selected_clinic = self.__clinic_repo.get_by_id(clinic_id)
+            selected_clinic = self.__appointment_service.get_clinic_by_id(clinic_id)
             if selected_clinic:
                 return clinic_id
             else:
@@ -121,10 +108,10 @@ class AppointmentController:
         self.print_header("选择医生")
         
         if clinic_id:
-            doctors = self.__doctor_repo.get_by_clinic(clinic_id)
+            doctors = self.__appointment_service.get_doctors_by_clinic(clinic_id)
             print(f"诊所 {clinic_id} 的医生列表:")
         else:
-            doctors = self.__doctor_repo.get_all()
+            doctors = self.__appointment_service.get_all_doctors()
             print("所有医生列表:")
         
         if not doctors:
@@ -159,7 +146,7 @@ class AppointmentController:
         
         try:
             doctor_id = int(choice)
-            selected_doctor = self.__doctor_repo.get_by_id(doctor_id)
+            selected_doctor = self.__appointment_service.get_doctor_by_id(doctor_id)
             if selected_doctor:
                 return doctor_id
             else:
@@ -183,16 +170,18 @@ class AppointmentController:
         """
         self.print_header("选择日期")
         
-        today = DateUtil.get_current_date()
+        today = self.__appointment_service.get_current_date()
         
         if future_only:
             # 获取未来7天的日期
-            dates = DateUtil.get_date_range(today, 7)
+            dates = self.__appointment_service.get_date_range(today, 7)
             print("未来7天的日期:")
         else:
             # 获取过去7天和未来7天的日期
-            past_dates = DateUtil.get_date_range(DateUtil.add_days(today, -7), 7)
-            future_dates = DateUtil.get_date_range(today, 7)
+            past_dates = self.__appointment_service.get_date_range(
+                self.__appointment_service.get_date_range(today, -7)[0], 7
+            )
+            future_dates = self.__appointment_service.get_date_range(today, 7)
             dates = past_dates + future_dates
             print("可选日期(过去7天和未来7天):")
         
@@ -200,7 +189,7 @@ class AppointmentController:
         print("-" * 25)
         
         for date in dates:
-            day_of_week = DateUtil.get_day_of_week(date)
+            day_of_week = self.__appointment_service.get_day_of_week(date)
             print(f"{date:<15}{day_of_week:<10}")
         
         option_text = "\n请输入日期(YYYY-MM-DD)"
@@ -221,7 +210,7 @@ class AppointmentController:
         if default_option and choice == "0":
             return None
         
-        if not DateUtil.is_valid_date(choice):
+        if not self.__appointment_service.is_valid_date(choice):
             print("无效的日期格式，请使用YYYY-MM-DD格式")
             self.wait_for_key()
             return self.get_date_selection(future_only, default_option)
@@ -232,39 +221,6 @@ class AppointmentController:
             return self.get_date_selection(future_only, default_option)
         
         return choice
-    
-    def get_available_time_slots(self, doctor_id: int, clinic_id: int, date: str) -> List[int]:
-        """获取指定日期医生在诊所的可用时间槽
-        
-        Args:
-            doctor_id (int): 医生ID
-            clinic_id (int): 诊所ID
-            date (str): 日期，格式为YYYY-MM-DD
-            
-        Returns:
-            List[int]: 可用时间槽列表
-        """
-        # 获取医生在该诊所的排班
-        doctor_schedule = self.__schedule_repo.get_by_doctor_clinic(doctor_id, clinic_id)
-        
-        # 如果没有找到排班，创建一个所有时间槽都可用的排班
-        if not doctor_schedule:
-            doctor_schedule = self.__schedule_repo.create_default_schedule(doctor_id, clinic_id)
-        
-        # 获取医生排班中可用时间槽
-        available_slots_base = DateUtil.hex_to_time_slots(doctor_schedule.time_slots)
-        
-        # 如果医生没有可用时间槽，返回空列表
-        if not available_slots_base:
-            return []
-        
-        # 检查每个排班中的时间槽在该日期是否可用
-        available_slots = []
-        for slot in available_slots_base:
-            if self.__appointment_repo.is_slot_available(doctor_id, clinic_id, date, slot):
-                available_slots.append(slot)
-        
-        return available_slots
     
     def show_available_slots(self, params: Dict[str, Any] = None) -> Optional[Tuple[str, int, int, int]]:
         """显示可用的时间槽
@@ -308,80 +264,36 @@ class AppointmentController:
         
         self.print_header("可用时间槽")
         
-        # 如果未指定日期，获取未来7天的日期
-        if date is None:
-            today = DateUtil.get_current_date()
-            future_dates = DateUtil.get_date_range(today, 7)
-        else:
-            future_dates = [date]
+        # 获取可用时间槽
+        available_slots_data = self.__appointment_service.get_available_slots_data(clinic_id, doctor_id, date)
         
-        # 如果未指定诊所，获取所有诊所
-        if clinic_id is None:
-            clinics = self.__clinic_repo.get_all()
-            clinic_ids = [clinic.id for clinic in clinics]
-        else:
-            clinic_ids = [clinic_id]
-        
-        # 如果未指定医生，获取所有医生
-        if doctor_id is None:
-            doctors = self.__doctor_repo.get_all()
-            doctor_ids = [doctor.id for doctor in doctors]
-        else:
-            doctor_ids = [doctor_id]
+        if not available_slots_data:
+            print("没有找到可用的时间槽")
+            self.wait_for_key()
+            return None
         
         print("可用时间槽:")
         print(f"{'日期':<15}{'星期':<10}{'诊所':<15}{'医生':<15}{'可用时间'}")
         print("-" * 85)
         
-        available_options = []
         option_index = 1
-        
-        # 遍历所有组合
-        for d_id in doctor_ids:
-            doctor = self.__doctor_repo.get_by_id(d_id)
-            if not doctor:
-                continue
-                
-            for c_id in clinic_ids:
-                # 检查医生是否在该诊所工作
-                if c_id not in doctor.assigned_clinics:
-                    continue
-                    
-                clinic = self.__clinic_repo.get_by_id(c_id)
-                if not clinic:
-                    continue
-                    
-                for date_str in future_dates:
-                    day_of_week = DateUtil.get_day_of_week(date_str)
-                    
-                    # 获取可用时间槽
-                    available_slots = self.get_available_time_slots(d_id, c_id, date_str)
-                    
-                    if available_slots:
-                        for slot in available_slots:
-                            time_str = DateUtil.get_time_slot_str(slot)
-                            print(f"{option_index:2}. {date_str:<12} {day_of_week:<10} {clinic.name:<15} {doctor.full_name:<15} {time_str}")
-                            available_options.append((date_str, slot, d_id, c_id))
-                            option_index += 1
-        
-        if not available_options:
-            print("没有找到可用的时间槽")
-            self.wait_for_key()
-            return None
+        for date_str, slot, d_id, c_id, clinic_name, doctor_name, day_of_week, time_str in available_slots_data:
+            print(f"{option_index:2}. {date_str:<12} {day_of_week:<10} {clinic_name:<15} {doctor_name:<15} {time_str}")
+            option_index += 1
         
         print("\n请选择时间槽编号，或输入0返回，按回车默认选择第一个: ", end="")
         choice = input()
         
         if choice == "":
-            return available_options[0]  # 默认选择第一个可用时间槽
+            return available_slots_data[0][:4]  # 默认选择第一个可用时间槽 (仅返回日期, 时间槽, 医生ID, 诊所ID)
         
         if choice == "0":
             return None
         
         try:
             slot_index = int(choice) - 1
-            if 0 <= slot_index < len(available_options):
-                return available_options[slot_index]
+            if 0 <= slot_index < len(available_slots_data):
+                return available_slots_data[slot_index][:4]  # 返回选中的时间槽
             else:
                 print("无效的时间槽编号")
                 self.wait_for_key()
@@ -404,15 +316,15 @@ class AppointmentController:
         
         date, time_slot, doctor_id, clinic_id = slot_info
         
-        doctor = self.__doctor_repo.get_by_id(doctor_id)
-        clinic = self.__clinic_repo.get_by_id(clinic_id)
+        doctor = self.__appointment_service.get_doctor_by_id(doctor_id)
+        clinic = self.__appointment_service.get_clinic_by_id(clinic_id)
         
         # 输入预约原因
         self.print_header("预约信息")
         print(f"诊所: {clinic.name}")
         print(f"医生: {doctor.full_name}")
         print(f"日期: {date}")
-        print(f"时间: {DateUtil.get_time_slot_str(time_slot)}")
+        print(f"时间: {self.__appointment_service.get_time_slot_str(time_slot)}")
         
         reason = input("\n请输入预约原因 (按回车默认为'常规预约'): ")
         if reason == "":
@@ -423,30 +335,11 @@ class AppointmentController:
         confirm = input().strip().upper()
         
         if confirm == "" or confirm == "Y":
-            # 创建预约记录
-            appointment = Appointment(
-                user_id=user.id,
-                doctor_id=doctor_id,
-                clinic_id=clinic_id,
-                date=date,
-                time_slot=time_slot,
-                reason=reason,
-                status="Scheduled"
-            )
-            
             try:
-                # 添加预约
-                appointment = self.__appointment_repo.add_appointment(appointment)
-                
-                # 创建通知
-                notification = Notification(
-                    user_id=user.id,
-                    message=f"您已成功预约 {date} {DateUtil.get_time_slot_str(time_slot)} 在 {clinic.name} 与 {doctor.full_name} 的就诊。",
-                    date=DateUtil.get_current_date(),
-                    read=False
+                # 创建预约
+                appointment = self.__appointment_service.make_appointment(
+                    user.id, doctor_id, clinic_id, date, time_slot, reason
                 )
-                
-                self.__notification_repo.add(notification)
                 
                 print("\n预约成功！")
                 print(f"预约ID: {appointment.id}")
@@ -474,41 +367,18 @@ class AppointmentController:
         self.print_header(title)
         
         # 获取预约列表
-        appointments = self.__appointment_repo.get_by_user(user.id)
+        appointments = self.__appointment_service.get_user_appointments(user.id, future_only, history_only)
         
         if not appointments:
-            print("您没有预约记录")
-            self.wait_for_key()
-            return
-        
-        # 筛选预约
-        today = DateUtil.get_current_date()
-        filtered_appointments = []
-        
-        for appointment in appointments:
-            if future_only and appointment.date < today:
-                continue
-            if history_only and appointment.date >= today:
-                continue
-            filtered_appointments.append(appointment)
-        
-        if not filtered_appointments:
-            print("没有符合条件的预约记录")
+            print("您没有预约记录" if not future_only and not history_only else "没有符合条件的预约记录")
             self.wait_for_key()
             return
         
         print(f"{'ID':<5}{'日期':<15}{'时间':<20}{'诊所':<15}{'医生':<15}{'状态':<15}")
         print("-" * 85)
         
-        for appointment in filtered_appointments:
-            clinic = self.__clinic_repo.get_by_id(appointment.clinic_id)
-            doctor = self.__doctor_repo.get_by_id(appointment.doctor_id)
-            
-            clinic_name = clinic.name if clinic else "未知诊所"
-            doctor_name = doctor.full_name if doctor else "未知医生"
-            time_str = DateUtil.get_time_slot_str(appointment.time_slot)
-            
-            print(f"{appointment.id:<5}{appointment.date:<15}{time_str:<20}{clinic_name:<15}{doctor_name:<15}{appointment.status:<15}")
+        for appointment in appointments:
+            print(f"{appointment['id']:<5}{appointment['date']:<15}{appointment['time_str']:<20}{appointment['clinic_name']:<15}{appointment['doctor_name']:<15}{appointment['status']:<15}")
         
         print("\n请选择预约ID查看详情，或输入0返回，按回车默认返回: ", end="")
         choice = input()
@@ -521,10 +391,10 @@ class AppointmentController:
         
         try:
             appointment_id = int(choice)
-            appointment = self.__appointment_repo.get_by_id(appointment_id)
+            appointment_details = self.__appointment_service.get_appointment_details(appointment_id)
             
-            if appointment and appointment.user_id == user.id:
-                self.show_appointment_details(appointment)
+            if appointment_details and appointment_details['user_id'] == user.id:
+                self.show_appointment_details(appointment_details)
             else:
                 print("无效的预约ID或您无权查看此预约")
                 self.wait_for_key()
@@ -532,38 +402,28 @@ class AppointmentController:
             print("请输入有效的数字")
             self.wait_for_key()
     
-    def show_appointment_details(self, appointment: Appointment) -> None:
+    def show_appointment_details(self, appointment_details: Dict) -> None:
         """显示预约详情
         
         Args:
-            appointment (Appointment): 预约实体
+            appointment_details (Dict): 预约详情字典
         """
         self.print_header("预约详情")
         
-        clinic = self.__clinic_repo.get_by_id(appointment.clinic_id)
-        doctor = self.__doctor_repo.get_by_id(appointment.doctor_id)
-        
-        print(f"预约ID: {appointment.id}")
-        print(f"用户ID: {appointment.user_id}")
-        # 尝试获取用户信息以显示更多详情
-        try:
-            user_repo = UserRepository()
-            user = user_repo.get_by_id(appointment.user_id)
-            if user:
-                print(f"患者姓名: {user.name}")
-                print(f"患者邮箱: {user.email}")
-        except:
-            pass  # 如果无法获取用户信息，则不显示
-        print(f"日期: {appointment.date}")
-        print(f"时间: {DateUtil.get_time_slot_str(appointment.time_slot)}")
-        print(f"诊所: {clinic.name if clinic else '未知'}")
-        print(f"诊所地址: {clinic.address if clinic else '未知'}")
-        print(f"医生: {doctor.full_name if doctor else '未知'}")
-        print(f"预约原因: {appointment.reason}")
-        print(f"状态: {appointment.status}")
+        print(f"预约ID: {appointment_details['id']}")
+        print(f"用户ID: {appointment_details['user_id']}")
+        print(f"患者姓名: {appointment_details['user_name']}")
+        print(f"患者邮箱: {appointment_details['user_email']}")
+        print(f"日期: {appointment_details['date']}")
+        print(f"时间: {appointment_details['time_str']}")
+        print(f"诊所: {appointment_details['clinic_name']}")
+        print(f"诊所地址: {appointment_details['clinic_address']}")
+        print(f"医生: {appointment_details['doctor_name']}")
+        print(f"预约原因: {appointment_details['reason']}")
+        print(f"状态: {appointment_details['status']}")
         
         # 只有未完成的预约才能取消
-        if appointment.is_scheduled() and appointment.date >= DateUtil.get_current_date():
+        if appointment_details['can_cancel']:
             print("\n1. 取消预约")
             print("0. 返回")
             
@@ -573,15 +433,15 @@ class AppointmentController:
                 return
             
             if choice == "1":
-                self.cancel_appointment(appointment)
+                self.cancel_appointment(appointment_details['appointment_obj'])
         else:
             self.wait_for_key()
     
-    def cancel_appointment(self, appointment: Appointment) -> None:
+    def cancel_appointment(self, appointment) -> None:
         """取消预约
         
         Args:
-            appointment (Appointment): 预约实体
+            appointment: 预约对象
         """
         print("\n确认取消预约 (Y/N，按回车默认为N): ", end="")
         confirm = input().strip().upper()
@@ -597,17 +457,7 @@ class AppointmentController:
             return
         
         # 取消预约
-        if self.__appointment_repo.cancel_appointment(appointment):
-            # 创建通知
-            notification = Notification(
-                user_id=appointment.user_id,
-                message=f"您已取消 {appointment.date} {DateUtil.get_time_slot_str(appointment.time_slot)} 的预约。",
-                date=DateUtil.get_current_date(),
-                read=False
-            )
-            
-            self.__notification_repo.add(notification)
-            
+        if self.__appointment_service.cancel_appointment(appointment):
             print("\n预约已成功取消")
         else:
             print("\n取消预约失败，可能预约已被取消")
@@ -668,21 +518,10 @@ class AppointmentController:
         """
         self.print_header("筛选结果")
         
-        # 获取当前用户的预约
-        appointments = self.__appointment_repo.get_by_user(user.id)
+        # 获取筛选后的预约
+        appointments = self.__appointment_service.filter_appointments(user.id, params)
         
-        # 筛选预约
-        filtered_appointments = []
-        for appointment in appointments:
-            if 'clinic_id' in params and params['clinic_id'] is not None and appointment.clinic_id != params['clinic_id']:
-                continue
-            if 'doctor_id' in params and params['doctor_id'] is not None and appointment.doctor_id != params['doctor_id']:
-                continue
-            if 'date' in params and params['date'] is not None and appointment.date != params['date']:
-                continue
-            filtered_appointments.append(appointment)
-        
-        if not filtered_appointments:
+        if not appointments:
             print("没有符合条件的预约")
             self.wait_for_key()
             return
@@ -690,15 +529,8 @@ class AppointmentController:
         print(f"{'ID':<5}{'日期':<15}{'时间':<20}{'诊所':<15}{'医生':<15}{'状态':<15}")
         print("-" * 85)
         
-        for appointment in filtered_appointments:
-            clinic = self.__clinic_repo.get_by_id(appointment.clinic_id)
-            doctor = self.__doctor_repo.get_by_id(appointment.doctor_id)
-            
-            clinic_name = clinic.name if clinic else "未知诊所"
-            doctor_name = doctor.full_name if doctor else "未知医生"
-            time_str = DateUtil.get_time_slot_str(appointment.time_slot)
-            
-            print(f"{appointment.id:<5}{appointment.date:<15}{time_str:<20}{clinic_name:<15}{doctor_name:<15}{appointment.status:<15}")
+        for appointment in appointments:
+            print(f"{appointment['id']:<5}{appointment['date']:<15}{appointment['time_str']:<20}{appointment['clinic_name']:<15}{appointment['doctor_name']:<15}{appointment['status']:<15}")
         
         print("\n请选择预约ID查看详情，或输入0返回，按回车默认返回: ", end="")
         choice = input()
@@ -711,10 +543,10 @@ class AppointmentController:
         
         try:
             appointment_id = int(choice)
-            appointment = self.__appointment_repo.get_by_id(appointment_id)
+            appointment_details = self.__appointment_service.get_appointment_details(appointment_id)
             
-            if appointment and appointment.user_id == user.id:
-                self.show_appointment_details(appointment)
+            if appointment_details and appointment_details['user_id'] == user.id:
+                self.show_appointment_details(appointment_details)
             else:
                 print("无效的预约ID或您无权查看此预约")
                 self.wait_for_key()
