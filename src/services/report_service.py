@@ -271,45 +271,46 @@ class ReportService:
         return report_data
     
     def generate_appointment_type_report(self, date_range_type: str, start_date: str = None, end_date: str = None) -> Dict[str, Any]:
-        """生成预约类型分布报告
+        """Generate appointment type distribution report
         
         Args:
-            date_range_type (str): 日期范围类型，可选值：'day', 'week', 'month', 'custom'
-            start_date (str, optional): 自定义范围起始日期，格式为 "YYYY-MM-DD"
-            end_date (str, optional): 自定义范围结束日期，格式为 "YYYY-MM-DD"
+            date_range_type (str): Date range type, options: 'day', 'week', 'month', 'custom'
+            start_date (str, optional): Custom range start date in format "YYYY-MM-DD"
+            end_date (str, optional): Custom range end date in format "YYYY-MM-DD"
             
         Returns:
-            Dict[str, Any]: 预约类型分布报告数据
+            Dict[str, Any]: Appointment type distribution report data
         """
-        # 获取日期范围
+        # Get date range
         start_date, end_date = self._get_date_range(date_range_type, start_date, end_date)
         
-        # 获取所有预约
+        # Get all appointments
         all_appointments = self.__appointment_repo.get_all()
         
-        # 按日期范围筛选预约
+        # Filter appointments by date range
         filtered_appointments = self._filter_appointments_by_date_range(all_appointments, start_date, end_date)
         
-        # 有效预约（已完成或已安排）
+        # Valid appointments (completed or scheduled)
         valid_appointments = [app for app in filtered_appointments 
                              if app.is_completed() or app.is_scheduled()]
         
-        # 统计总预约数
+        # Count total appointments
         total_appointments = len(valid_appointments)
         
         if total_appointments == 0:
             return {
-                "date_range": f"{start_date} 至 {end_date}",
+                "date_range": f"{start_date} to {end_date}",
                 "total_appointments": 0,
-                "type_stats": []
+                "type_stats": [],
+                "reason_counts": {}  # Add an empty reason_counts dictionary
             }
         
-        # 统计预约类型分布
+        # Count appointments by reason
         reason_stats = Counter()
         for appointment in valid_appointments:
             reason_stats[appointment.reason] += 1
         
-        # 计算百分比
+        # Calculate percentages
         type_stats = []
         for reason, count in reason_stats.items():
             percentage = (count / total_appointments) * 100
@@ -319,48 +320,54 @@ class ReportService:
                 "percentage": round(percentage, 2)
             })
         
-        # 按数量降序排序
+        # Sort by count in descending order
         type_stats.sort(key=lambda x: x["count"], reverse=True)
         
-        # 整合报告数据
+        # Create a simplified reason_counts dictionary for direct use
+        reason_counts = {}
+        for reason, count in reason_stats.items():
+            reason_counts[reason] = count
+        
+        # Integrate report data
         report_data = {
-            "date_range": f"{start_date} 至 {end_date}",
+            "date_range": f"{start_date} to {end_date}",
             "total_appointments": total_appointments,
-            "type_stats": type_stats
+            "type_stats": type_stats,
+            "reason_counts": reason_counts  # Add the reason_counts dictionary
         }
         
         return report_data
     
     def export_report_to_csv(self, report_data: Any, report_type: str, filename: str = None) -> str:
-        """将报告导出为CSV文件
+        """Export report to CSV file
         
         Args:
-            report_data (Any): 报告数据
-            report_type (str): 报告类型，可选值：'doctor', 'clinic', 'appointment_type'
-            filename (str, optional): 自定义文件名
+            report_data (Any): Report data
+            report_type (str): Report type, options: 'doctor', 'clinic', 'appointment_type'
+            filename (str, optional): Custom filename
             
         Returns:
-            str: CSV文件路径
+            str: CSV file path
         """
-        # 创建导出目录
+        # Create export directory
         export_dir = os.path.join("exports")
         os.makedirs(export_dir, exist_ok=True)
         
-        # 生成默认文件名
+        # Generate default filename
         if not filename:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"{report_type}_report_{timestamp}.csv"
         
-        # 确保文件扩展名为.csv
+        # Ensure file extension is .csv
         if not filename.endswith('.csv'):
             filename += '.csv'
         
         file_path = os.path.join(export_dir, filename)
         
-        # 根据报告类型写入不同的CSV格式
+        # Write different CSV formats based on report type
         with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
             if report_type == 'doctor':
-                # 医生报告
+                # Doctor report
                 fieldnames = ['doctor_id', 'doctor_name', 'clinic_suburbs', 'appointment_count', 'appointment_reasons']
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
                 writer.writeheader()
@@ -368,11 +375,11 @@ class ReportService:
                     writer.writerow(item)
             
             elif report_type == 'clinic':
-                # 诊所报告
+                # Clinic report
                 writer = csv.writer(csvfile)
                 
-                # 写入基本信息
-                writer.writerow(['诊所ID', '诊所名称', '日期范围', '总预约数'])
+                # Write basic information
+                writer.writerow(['Clinic ID', 'Clinic Name', 'Date Range', 'Total Appointments'])
                 writer.writerow([
                     report_data['clinic_id'],
                     report_data['clinic_name'],
@@ -380,9 +387,9 @@ class ReportService:
                     report_data['total_appointments']
                 ])
                 
-                # 写入医生统计信息
+                # Write doctor statistics
                 writer.writerow([])
-                writer.writerow(['医生ID', '医生姓名', '预约数量'])
+                writer.writerow(['Doctor ID', 'Doctor Name', 'Appointment Count'])
                 for doctor in report_data['doctor_stats']:
                     writer.writerow([
                         doctor['doctor_id'],
@@ -390,59 +397,61 @@ class ReportService:
                         doctor['appointment_count']
                     ])
                 
-                # 写入预约原因统计
+                # Write reason statistics
                 writer.writerow([])
-                writer.writerow(['预约原因', '数量'])
+                writer.writerow(['Reason', 'Count'])
                 for reason in report_data['reason_stats']:
                     writer.writerow([reason['reason'], reason['count']])
                 
-                # 写入高峰时间分析
+                # Write peak time analysis
                 writer.writerow([])
-                writer.writerow(['时间段', '预约数量'])
+                writer.writerow(['Time Slot', 'Appointment Count'])
                 for peak in report_data['peak_times']:
                     writer.writerow([peak['time_display'], peak['count']])
             
             elif report_type == 'appointment_type':
-                # 预约类型分布报告
+                # Appointment type distribution report
                 writer = csv.writer(csvfile)
                 
-                # 写入基本信息
-                writer.writerow(['日期范围', report_data['date_range']])
-                writer.writerow(['总预约数', report_data['total_appointments']])
+                # Write basic information
+                writer.writerow(['Date Range', report_data['date_range']])
+                writer.writerow(['Total Appointments', report_data['total_appointments']])
                 
-                # 写入类型统计
+                # Write type statistics
                 writer.writerow([])
-                writer.writerow(['预约原因', '数量', '百分比'])
-                for type_stat in report_data['type_stats']:
-                    writer.writerow([
-                        type_stat['reason'], 
-                        type_stat['count'],
-                        f"{type_stat['percentage']}%"
-                    ])
+                writer.writerow(['Reason', 'Count', 'Percentage'])
+                
+                if 'type_stats' in report_data:
+                    for type_stat in report_data['type_stats']:
+                        writer.writerow([
+                            type_stat['reason'], 
+                            type_stat['count'],
+                            f"{type_stat['percentage']}%"
+                        ])
         
         return file_path
     
     def export_report_to_txt(self, report_data: Any, report_type: str, filename: str = None) -> str:
-        """将报告导出为TXT文件
+        """Export report to TXT file
         
         Args:
-            report_data (Any): 报告数据
-            report_type (str): 报告类型，可选值：'doctor', 'clinic', 'appointment_type'
-            filename (str, optional): 自定义文件名
+            report_data (Any): Report data
+            report_type (str): Report type, options: 'doctor', 'clinic', 'appointment_type'
+            filename (str, optional): Custom filename
             
         Returns:
-            str: TXT文件路径
+            str: TXT file path
         """
-        # 创建导出目录
+        # Create export directory
         export_dir = os.path.join("exports")
         os.makedirs(export_dir, exist_ok=True)
         
-        # 生成默认文件名
+        # Generate default filename
         if not filename:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"{report_type}_report_{timestamp}.txt"
         
-        # 确保文件扩展名为.txt
+        # Ensure file extension is .txt
         if not filename.endswith('.txt'):
             filename += '.txt'
         
@@ -450,57 +459,59 @@ class ReportService:
         
         with open(file_path, 'w', encoding='utf-8') as txtfile:
             if report_type == 'doctor':
-                # 医生报告
+                # Doctor report
                 txtfile.write("=====================================================\n")
-                txtfile.write("              医生接待人数统计报告                  \n")
+                txtfile.write("              Doctor Patient Statistics Report       \n")
                 txtfile.write("=====================================================\n\n")
                 
                 for item in report_data:
-                    txtfile.write(f"医生ID: {item['doctor_id']}\n")
-                    txtfile.write(f"医生姓名: {item['doctor_name']}\n")
-                    txtfile.write(f"所在诊所区域: {item['clinic_suburbs']}\n")
-                    txtfile.write(f"接待人数: {item['appointment_count']}\n")
-                    txtfile.write(f"就诊原因: {item['appointment_reasons']}\n")
+                    txtfile.write(f"Doctor ID: {item['doctor_id']}\n")
+                    txtfile.write(f"Doctor Name: {item['doctor_name']}\n")
+                    txtfile.write(f"Clinic Suburbs: {item['clinic_suburbs']}\n")
+                    txtfile.write(f"Appointment Count: {item['appointment_count']}\n")
+                    txtfile.write(f"Appointment Reasons: {item['appointment_reasons']}\n")
                     txtfile.write("-" * 50 + "\n")
             
             elif report_type == 'clinic':
-                # 诊所报告
+                # Clinic report
                 txtfile.write("=====================================================\n")
-                txtfile.write("              诊所预约数据统计报告                  \n")
+                txtfile.write("              Clinic Appointment Data Report         \n")
                 txtfile.write("=====================================================\n\n")
                 
-                txtfile.write(f"诊所ID: {report_data['clinic_id']}\n")
-                txtfile.write(f"诊所名称: {report_data['clinic_name']}\n")
-                txtfile.write(f"日期范围: {report_data['date_range']}\n")
-                txtfile.write(f"总预约数: {report_data['total_appointments']}\n\n")
+                txtfile.write(f"Clinic ID: {report_data['clinic_id']}\n")
+                txtfile.write(f"Clinic Name: {report_data['clinic_name']}\n")
+                txtfile.write(f"Date Range: {report_data['date_range']}\n")
+                txtfile.write(f"Total Appointments: {report_data['total_appointments']}\n\n")
                 
-                txtfile.write("医生预约统计:\n")
+                txtfile.write("Doctor Appointment Distribution:\n")
                 txtfile.write("-" * 50 + "\n")
                 for doctor in report_data['doctor_stats']:
-                    txtfile.write(f"医生: {doctor['doctor_name']} (ID: {doctor['doctor_id']}), 预约数: {doctor['appointment_count']}\n")
+                    txtfile.write(f"Doctor: {doctor['doctor_name']} (ID: {doctor['doctor_id']}), Appointments: {doctor['appointment_count']}\n")
                 
-                txtfile.write("\n就诊原因统计:\n")
+                txtfile.write("\nReason Statistics:\n")
                 txtfile.write("-" * 50 + "\n")
                 for reason in report_data['reason_stats']:
                     txtfile.write(f"{reason['reason']}: {reason['count']}\n")
                 
-                txtfile.write("\n高峰时间分析:\n")
+                txtfile.write("\nPeak Time Analysis:\n")
                 txtfile.write("-" * 50 + "\n")
                 for peak in report_data['peak_times']:
-                    txtfile.write(f"{peak['time_display']}: {peak['count']} 预约\n")
+                    txtfile.write(f"{peak['time_display']}: {peak['count']} appointments\n")
             
             elif report_type == 'appointment_type':
-                # 预约类型分布报告
+                # Appointment type distribution report
                 txtfile.write("=====================================================\n")
-                txtfile.write("              预约类型分布统计报告                  \n")
+                txtfile.write("          Appointment Type Distribution Report       \n")
                 txtfile.write("=====================================================\n\n")
                 
-                txtfile.write(f"日期范围: {report_data['date_range']}\n")
-                txtfile.write(f"总预约数: {report_data['total_appointments']}\n\n")
+                txtfile.write(f"Date Range: {report_data['date_range']}\n")
+                txtfile.write(f"Total Appointments: {report_data['total_appointments']}\n\n")
                 
-                txtfile.write("预约类型分布:\n")
+                txtfile.write("Appointment Type Distribution:\n")
                 txtfile.write("-" * 50 + "\n")
-                for type_stat in report_data['type_stats']:
-                    txtfile.write(f"{type_stat['reason']}: {type_stat['count']} ({type_stat['percentage']}%)\n")
+                
+                if 'type_stats' in report_data:
+                    for type_stat in report_data['type_stats']:
+                        txtfile.write(f"{type_stat['reason']}: {type_stat['count']} ({type_stat['percentage']}%)\n")
         
         return file_path 

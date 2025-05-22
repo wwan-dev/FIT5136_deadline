@@ -302,20 +302,42 @@ class ReportController:
             self.wait_for_key()
             return
         
+        # Check for error
+        if 'error' in report_data:
+            print(f"Error: {report_data['error']}")
+            self.wait_for_key()
+            return
+        
         # Display report
         self.print_header("Appointment Type Distribution Report")
-        start, end = self.__report_svc._get_date_range(range_type, start_date, end_date)
-        print(f"Date range: {start} to {end}")
-        print(f"Total appointments: {sum(report_data.values())}")
+        print(f"Date range: {report_data['date_range']}")
+        print(f"Total appointments: {report_data['total_appointments']}")
         print()
         
-        max_count = max(report_data.values()) if report_data else 0
+        # If there are no appointments, show a message and return
+        if report_data['total_appointments'] == 0:
+            print("No appointments found in the selected date range.")
+            self.wait_for_key()
+            return
         
-        for reason, count in sorted(report_data.items(), key=lambda x: x[1], reverse=True):
-            bar_length = int((count / max_count) * 30) if max_count > 0 else 0
-            percentage = (count / sum(report_data.values())) * 100 if sum(report_data.values()) > 0 else 0
+        # Display appointment type distribution
+        if 'reason_counts' in report_data and report_data['reason_counts']:
+            # Calculate maximum count for bar scaling
+            max_count = max(report_data['reason_counts'].values()) if report_data['reason_counts'] else 0
+            total_count = sum(report_data['reason_counts'].values()) if report_data['reason_counts'] else 0
             
-            print(f"{reason:<20} {count:>4} ({percentage:.1f}%) {'█' * bar_length}")
+            # Sort reasons by count in descending order
+            sorted_reasons = sorted(report_data['reason_counts'].items(), 
+                                  key=lambda x: x[1], 
+                                  reverse=True)
+            
+            for reason, count in sorted_reasons:
+                bar_length = int((count / max_count) * 30) if max_count > 0 else 0
+                percentage = (count / total_count) * 100 if total_count > 0 else 0
+                
+                print(f"{reason:<20} {count:>4} ({percentage:.1f}%) {'█' * bar_length}")
+        else:
+            print("No appointment type distribution data available.")
         
         # Export options
         print("\nSelect an option:")
