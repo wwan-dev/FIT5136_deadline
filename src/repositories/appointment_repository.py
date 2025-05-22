@@ -21,17 +21,44 @@ class AppointmentRepository(BaseRepository[Appointment]):
         super().__init__(data_file, Appointment)
         self.__schedule_repo = DoctorScheduleRepository()
     
-    def get_by_patient(self, patient_email: str) -> List[Appointment]:
-        """根据患者电子邮箱获取预约列表
+    def get_by_user(self, user_id: int) -> List[Appointment]:
+        """根据用户ID获取预约列表
         
         Args:
-            patient_email (str): 患者电子邮箱
+            user_id (int): 用户ID
             
         Returns:
             List[Appointment]: 预约列表
         """
         appointments = self.get_all()
-        return [appointment for appointment in appointments if appointment.patient_email == patient_email]
+        return [appointment for appointment in appointments if appointment.user_id == user_id]
+    
+    # 兼容旧代码的方法
+    def get_by_patient(self, patient_email: str) -> List[Appointment]:
+        """根据患者电子邮箱获取预约列表（兼容旧代码）
+        
+        Args:
+            patient_email (str): 患者电子邮箱或用户ID
+            
+        Returns:
+            List[Appointment]: 预约列表
+        """
+        # 如果参数是数字，则认为是用户ID
+        if isinstance(patient_email, int) or (isinstance(patient_email, str) and patient_email.isdigit()):
+            user_id = int(patient_email)
+            return self.get_by_user(user_id)
+            
+        # 否则，需要先从用户仓库查找对应的用户ID
+        from src.repositories.user_repository import UserRepository
+        user_repo = UserRepository()
+        users = user_repo.get_all()
+        
+        for user in users:
+            if user.email == patient_email:
+                return self.get_by_user(user.id)
+        
+        # 如果找不到匹配的用户，返回空列表
+        return []
     
     def get_by_doctor(self, doctor_id: int) -> List[Appointment]:
         """根据医生ID获取预约列表

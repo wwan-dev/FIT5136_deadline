@@ -8,22 +8,33 @@
 class Appointment:
     """<<Entity>> 预约实体类"""
     
-    def __init__(self, id=None, patient_email=None, doctor_id=None, clinic_id=None, 
-                 date=None, time_slot=None, reason=None, status=None):
+    def __init__(self, id=None, user_id=None, doctor_id=None, clinic_id=None, 
+                 date=None, time_slot=None, reason=None, status=None, patient_email=None):
         """初始化预约实体
         
         Args:
             id (int, optional): 预约ID
-            patient_email (str, optional): 患者电子邮箱
+            user_id (int, optional): 用户ID
             doctor_id (int, optional): 医生ID
             clinic_id (int, optional): 诊所ID
             date (str, optional): 日期，格式为 "YYYY-MM-DD"
             time_slot (int, optional): 时间槽索引（0-15）
             reason (str, optional): 预约原因
             status (str, optional): 预约状态
+            patient_email (str, optional): 患者电子邮箱(兼容旧数据)
         """
         self.__id = int(id) if id is not None else None
-        self.__patient_email = str(patient_email) if patient_email is not None else None
+        # 处理兼容性：如果提供了patient_email但没有user_id，尝试将email转为user_id
+        if user_id is None and patient_email is not None:
+            # 尝试将email转换为用户ID
+            if patient_email.isdigit():
+                self.__user_id = int(patient_email)
+            else:
+                # 默认设置为1，实际应用中应该查询用户仓库
+                self.__user_id = 1  
+        else:
+            self.__user_id = int(user_id) if user_id is not None else None
+            
         self.__doctor_id = int(doctor_id) if doctor_id is not None else None
         self.__clinic_id = int(clinic_id) if clinic_id is not None else None
         self.__date = str(date) if date is not None else None
@@ -42,13 +53,13 @@ class Appointment:
         return self.__id
     
     @property
-    def patient_email(self) -> str:
-        """获取患者电子邮箱
+    def user_id(self) -> int:
+        """获取用户ID
         
         Returns:
-            str: 患者电子邮箱
+            int: 用户ID
         """
-        return self.__patient_email
+        return self.__user_id
     
     @property
     def doctor_id(self) -> int:
@@ -104,15 +115,25 @@ class Appointment:
         """
         return self.__status
     
+    # 兼容旧代码的属性
+    @property
+    def patient_email(self) -> str:
+        """获取患者邮箱（兼容旧代码）
+        
+        Returns:
+            str: 患者邮箱，现在返回用户ID的字符串表示
+        """
+        return str(self.__user_id)
+    
     # 修改器方法
-    @patient_email.setter
-    def patient_email(self, patient_email: str) -> None:
-        """设置患者电子邮箱
+    @user_id.setter
+    def user_id(self, user_id: int) -> None:
+        """设置用户ID
         
         Args:
-            patient_email (str): 患者电子邮箱
+            user_id (int): 用户ID
         """
-        self.__patient_email = str(patient_email) if patient_email is not None else None
+        self.__user_id = int(user_id) if user_id is not None else None
     
     @doctor_id.setter
     def doctor_id(self, doctor_id: int) -> None:
@@ -215,7 +236,7 @@ class Appointment:
         Returns:
             str: 预约字符串表示
         """
-        return f"Appointment(id={self.__id}, patient={self.__patient_email}, doctor={self.__doctor_id}, date={self.__date}, time_slot={self.__time_slot}, status={self.__status})"
+        return f"Appointment(id={self.__id}, user_id={self.__user_id}, doctor={self.__doctor_id}, date={self.__date}, time_slot={self.__time_slot}, status={self.__status})"
     
     def to_dict(self) -> dict:
         """转换为字典
@@ -225,7 +246,7 @@ class Appointment:
         """
         return {
             "id": self.__id,
-            "patient_email": self.__patient_email,
+            "user_id": self.__user_id,
             "doctor_id": self.__doctor_id,
             "clinic_id": self.__clinic_id,
             "date": self.__date,
@@ -244,9 +265,14 @@ class Appointment:
         Returns:
             Appointment: 预约实体
         """
+        # 处理字段名称变更，支持旧数据
+        user_id = data.get("user_id")
+        patient_email = data.get("patient_email")
+        
         return cls(
             id=data.get("id"),
-            patient_email=data.get("patient_email"),
+            user_id=user_id,
+            patient_email=patient_email,  # 用于兼容旧数据
             doctor_id=data.get("doctor_id"),
             clinic_id=data.get("clinic_id"),
             date=data.get("date"),

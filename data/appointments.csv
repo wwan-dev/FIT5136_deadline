@@ -1,9 +1,9 @@
-id,patient_email,doctor_id,clinic_id,date,time_slot,reason,status
-1,patient1@student.monash.edu,1,1,2023-05-01,0,General Consultation,Completed
-2,patient2@student.monash.edu,2,3,2023-05-02,7,Vaccination,Completed
-3,patient1@student.monash.edu,3,2,2023-05-05,3,Chronic Disease Management,Cancelled by Patient
-4,patient2@student.monash.edu,4,1,2023-05-07,10,Referral,Cancelled by Clinic
-5,patient1@student.monash.edu,1,1,2023-05-15,1,General Consultation,Scheduled
-6,patient2@student.monash.edu,2,3,2023-05-15,8,Mental Health Consultation,Scheduled
-7,patient1@student.monash.edu,4,2,2023-05-16,4,Vaccination,Scheduled 
+id,user_id,doctor_id,clinic_id,date,time_slot,reason,status
+1,1,1,1,2023-05-01,0,General Consultation,Completed
+2,2,2,3,2023-05-02,7,Vaccination,Completed
+3,1,3,2,2023-05-05,3,Chronic Disease Management,Cancelled by Patient
+4,2,4,1,2023-05-07,10,Referral,Cancelled by Clinic
+5,1,1,1,2023-05-15,1,General Consultation,Scheduled
+6,2,2,3,2023-05-15,8,Mental Health Consultation,Scheduled
+7,1,4,2,2023-05-16,4,Vaccination,Scheduled 
 8,1,1,1,2025-05-23,9,Daily,Scheduled

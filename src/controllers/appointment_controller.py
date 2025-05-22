@@ -17,6 +17,7 @@ from src.repositories.clinic_repository import ClinicRepository
 from src.repositories.doctor_repository import DoctorRepository
 from src.repositories.notification_repository import NotificationRepository
 from src.repositories.doctor_schedule_repository import DoctorScheduleRepository
+from src.repositories.user_repository import UserRepository
 from src.utils.date_util import DateUtil
 
 
@@ -424,7 +425,7 @@ class AppointmentController:
         if confirm == "" or confirm == "Y":
             # 创建预约记录
             appointment = Appointment(
-                patient_email=user.email,
+                user_id=user.id,
                 doctor_id=doctor_id,
                 clinic_id=clinic_id,
                 date=date,
@@ -473,7 +474,7 @@ class AppointmentController:
         self.print_header(title)
         
         # 获取预约列表
-        appointments = self.__appointment_repo.get_by_patient(user.email)
+        appointments = self.__appointment_repo.get_by_user(user.id)
         
         if not appointments:
             print("您没有预约记录")
@@ -522,7 +523,7 @@ class AppointmentController:
             appointment_id = int(choice)
             appointment = self.__appointment_repo.get_by_id(appointment_id)
             
-            if appointment and appointment.patient_email == user.email:
+            if appointment and appointment.user_id == user.id:
                 self.show_appointment_details(appointment)
             else:
                 print("无效的预约ID或您无权查看此预约")
@@ -543,7 +544,16 @@ class AppointmentController:
         doctor = self.__doctor_repo.get_by_id(appointment.doctor_id)
         
         print(f"预约ID: {appointment.id}")
-        print(f"患者邮箱: {appointment.patient_email}")
+        print(f"用户ID: {appointment.user_id}")
+        # 尝试获取用户信息以显示更多详情
+        try:
+            user_repo = UserRepository()
+            user = user_repo.get_by_id(appointment.user_id)
+            if user:
+                print(f"患者姓名: {user.name}")
+                print(f"患者邮箱: {user.email}")
+        except:
+            pass  # 如果无法获取用户信息，则不显示
         print(f"日期: {appointment.date}")
         print(f"时间: {DateUtil.get_time_slot_str(appointment.time_slot)}")
         print(f"诊所: {clinic.name if clinic else '未知'}")
@@ -590,7 +600,7 @@ class AppointmentController:
         if self.__appointment_repo.cancel_appointment(appointment):
             # 创建通知
             notification = Notification(
-                user_id=user.id,
+                user_id=appointment.user_id,
                 message=f"您已取消 {appointment.date} {DateUtil.get_time_slot_str(appointment.time_slot)} 的预约。",
                 date=DateUtil.get_current_date(),
                 read=False
@@ -659,7 +669,7 @@ class AppointmentController:
         self.print_header("筛选结果")
         
         # 获取当前用户的预约
-        appointments = self.__appointment_repo.get_by_patient(user.email)
+        appointments = self.__appointment_repo.get_by_user(user.id)
         
         # 筛选预约
         filtered_appointments = []
@@ -703,7 +713,7 @@ class AppointmentController:
             appointment_id = int(choice)
             appointment = self.__appointment_repo.get_by_id(appointment_id)
             
-            if appointment and appointment.patient_email == user.email:
+            if appointment and appointment.user_id == user.id:
                 self.show_appointment_details(appointment)
             else:
                 print("无效的预约ID或您无权查看此预约")
