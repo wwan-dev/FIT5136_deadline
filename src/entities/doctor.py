@@ -2,23 +2,23 @@
 # -*- coding: utf-8 -*-
 
 """
-医生实体类
+Doctor Entity Class
 """
 
 from typing import List
 
 class Doctor:
-    """<<Entity>> 医生实体类"""
+    """<<Entity>> Doctor Entity Class"""
     
     def __init__(self, id=None, full_name=None, email=None, assigned_clinics=None, specialisation=None):
-        """初始化医生实体
+        """Initialize doctor entity
         
         Args:
-            id (int, optional): 医生ID
-            full_name (str, optional): 全名
-            email (str, optional): 电子邮箱
-            assigned_clinics (list, optional): 所属诊所ID列表
-            specialisation (list, optional): 专业领域列表
+            id (int, optional): Doctor ID
+            full_name (str, optional): Full name
+            email (str, optional): Email address
+            assigned_clinics (list, optional): List of assigned clinic IDs
+            specialisation (list, optional): List of specialisations
         """
         self.__id = int(id) if id is not None else None
         self.__full_name = str(full_name) if full_name is not None else None
@@ -26,161 +26,161 @@ class Doctor:
         self.__assigned_clinics = assigned_clinics if assigned_clinics else []
         self.__specialisation = specialisation if specialisation else []
     
-    # 访问器方法
+    # Accessor methods
     @property
     def id(self) -> int:
-        """获取医生ID
+        """Get doctor ID
         
         Returns:
-            int: 医生ID
+            int: Doctor ID
         """
         return self.__id
     
     @property
     def full_name(self) -> str:
-        """获取医生全名
+        """Get doctor full name
         
         Returns:
-            str: 医生全名
+            str: Doctor full name
         """
         return self.__full_name
     
     @property
     def email(self) -> str:
-        """获取医生电子邮箱
+        """Get doctor email
         
         Returns:
-            str: 医生电子邮箱
+            str: Doctor email
         """
         return self.__email
     
     @property
     def assigned_clinics(self) -> List[int]:
-        """获取医生所属诊所ID列表
+        """Get list of assigned clinic IDs
         
         Returns:
-            List[int]: 医生所属诊所ID列表
+            List[int]: List of assigned clinic IDs
         """
         return self.__assigned_clinics
     
     @property
     def specialisation(self) -> List[str]:
-        """获取医生专业领域列表
+        """Get list of specialisations
         
         Returns:
-            List[str]: 医生专业领域列表
+            List[str]: List of specialisations
         """
         return self.__specialisation
     
-    # 修改器方法
+    # Modifier methods
     @full_name.setter
     def full_name(self, full_name: str) -> None:
-        """设置医生全名
+        """Set doctor full name
         
         Args:
-            full_name (str): 医生全名
+            full_name (str): Doctor full name
         """
         self.__full_name = str(full_name) if full_name is not None else None
     
     @email.setter
     def email(self, email: str) -> None:
-        """设置医生电子邮箱
+        """Set doctor email
         
         Args:
-            email (str): 医生电子邮箱
+            email (str): Doctor email
         """
         self.__email = str(email) if email is not None else None
     
     @assigned_clinics.setter
     def assigned_clinics(self, assigned_clinics: List[int]) -> None:
-        """设置医生所属诊所ID列表
+        """Set list of assigned clinic IDs
         
         Args:
-            assigned_clinics (List[int]): 医生所属诊所ID列表
+            assigned_clinics (List[int]): List of assigned clinic IDs
         """
         self.__assigned_clinics = assigned_clinics if assigned_clinics else []
     
     @specialisation.setter
     def specialisation(self, specialisation: List[str]) -> None:
-        """设置医生专业领域列表
+        """Set list of specialisations
         
         Args:
-            specialisation (List[str]): 医生专业领域列表
+            specialisation (List[str]): List of specialisations
         """
         self.__specialisation = specialisation if specialisation else []
     
-    # 业务方法
+    # Business methods
     def add_clinic(self, clinic_id: int) -> None:
-        """添加医生所属诊所
+        """Add clinic to doctor's assigned clinics
         
         Args:
-            clinic_id (int): 诊所ID
+            clinic_id (int): Clinic ID
         """
         if clinic_id not in self.__assigned_clinics:
             self.__assigned_clinics.append(clinic_id)
     
     def remove_clinic(self, clinic_id: int) -> None:
-        """移除医生所属诊所
+        """Remove clinic from doctor's assigned clinics
         
         Args:
-            clinic_id (int): 诊所ID
+            clinic_id (int): Clinic ID
         """
         if clinic_id in self.__assigned_clinics:
             self.__assigned_clinics.remove(clinic_id)
     
     def add_specialisation(self, specialisation: str) -> None:
-        """添加医生专业领域
+        """Add specialisation to doctor's specialisations
         
         Args:
-            specialisation (str): 专业领域
+            specialisation (str): Specialisation
         """
         if specialisation not in self.__specialisation:
             self.__specialisation.append(specialisation)
     
     def remove_specialisation(self, specialisation: str) -> None:
-        """移除医生专业领域
+        """Remove specialisation from doctor's specialisations
         
         Args:
-            specialisation (str): 专业领域
+            specialisation (str): Specialisation
         """
         if specialisation in self.__specialisation:
             self.__specialisation.remove(specialisation)
     
     def is_working_in_clinic(self, clinic_id: int) -> bool:
-        """判断医生是否在指定诊所工作
+        """Check if doctor is working in specified clinic
         
         Args:
-            clinic_id (int): 诊所ID
+            clinic_id (int): Clinic ID
             
         Returns:
-            bool: 如果医生在指定诊所工作返回True，否则返回False
+            bool: True if doctor is working in specified clinic, False otherwise
         """
         return clinic_id in self.__assigned_clinics
     
     def has_specialisation(self, specialisation: str) -> bool:
-        """判断医生是否具有指定专业领域
+        """Check if doctor has specified specialisation
         
         Args:
-            specialisation (str): 专业领域
+            specialisation (str): Specialisation
             
         Returns:
-            bool: 如果医生具有指定专业领域返回True，否则返回False
+            bool: True if doctor has specified specialisation, False otherwise
         """
         return specialisation in self.__specialisation
     
     def __str__(self) -> str:
-        """返回医生字符串表示
+        """Return string representation of doctor
         
         Returns:
-            str: 医生字符串表示
+            str: String representation of doctor
         """
         return f"Doctor(id={self.__id}, full_name={self.__full_name}, clinics={self.__assigned_clinics})"
     
     def to_dict(self) -> dict:
-        """转换为字典
+        """Convert to dictionary
         
         Returns:
-            dict: 医生字典表示
+            dict: Dictionary representation of doctor
         """
         return {
             "id": self.__id,
@@ -192,20 +192,20 @@ class Doctor:
     
     @classmethod
     def from_dict(cls, data: dict):
-        """从字典创建医生
+        """Create doctor from dictionary
         
         Args:
-            data (dict): 医生字典数据
+            data (dict): Dictionary data of doctor
             
         Returns:
-            Doctor: 医生实体
+            Doctor: Doctor entity
         """
-        # 处理assigned_clinics字段，可能是字符串形式的"1;2;3"
+        # Handle assigned_clinics field, which might be a string in the format "1;2;3"
         assigned_clinics = data.get("assigned_clinics")
         if isinstance(assigned_clinics, str):
             assigned_clinics = [int(clinic_id) for clinic_id in assigned_clinics.split(";") if clinic_id]
         
-        # 处理specialisation字段，可能是字符串形式的"专业1;专业2"
+        # Handle specialisation field, which might be a string in the format "spec1;spec2"
         specialisation = data.get("specialisation")
         if isinstance(specialisation, str):
             specialisation = [spec.strip() for spec in specialisation.split(";") if spec]

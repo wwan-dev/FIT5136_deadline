@@ -2,21 +2,21 @@
 # -*- coding: utf-8 -*-
 
 """
-诊所实体类
+Clinic Entity Class
 """
 
 class Clinic:
-    """<<Entity>> 诊所实体类"""
+    """<<Entity>> Clinic Entity Class"""
     
     def __init__(self, id=None, name=None, suburb=None, address=None, phone=None):
-        """初始化诊所实体
+        """Initialize clinic entity
         
         Args:
-            id (int, optional): 诊所ID
-            name (str, optional): 诊所名称
-            suburb (str, optional): 所在郊区
-            address (str, optional): 地址
-            phone (str, optional): 电话号码
+            id (int, optional): Clinic ID
+            name (str, optional): Clinic name
+            suburb (str, optional): Suburb location
+            address (str, optional): Address
+            phone (str, optional): Phone number
         """
         self.__id = int(id) if id is not None else None
         self.__name = str(name) if name is not None else None
@@ -24,102 +24,102 @@ class Clinic:
         self.__address = str(address) if address is not None else None
         self.__phone = str(phone) if phone is not None else None
     
-    # 访问器方法
+    # Accessor methods
     @property
     def id(self) -> int:
-        """获取诊所ID
+        """Get clinic ID
         
         Returns:
-            int: 诊所ID
+            int: Clinic ID
         """
         return self.__id
     
     @property
     def name(self) -> str:
-        """获取诊所名称
+        """Get clinic name
         
         Returns:
-            str: 诊所名称
+            str: Clinic name
         """
         return self.__name
     
     @property
     def suburb(self) -> str:
-        """获取诊所所在郊区
+        """Get clinic suburb
         
         Returns:
-            str: 诊所所在郊区
+            str: Clinic suburb
         """
         return self.__suburb
     
     @property
     def address(self) -> str:
-        """获取诊所地址
+        """Get clinic address
         
         Returns:
-            str: 诊所地址
+            str: Clinic address
         """
         return self.__address
     
     @property
     def phone(self) -> str:
-        """获取诊所电话号码
+        """Get clinic phone number
         
         Returns:
-            str: 诊所电话号码
+            str: Clinic phone number
         """
         return self.__phone
     
-    # 修改器方法
+    # Modifier methods
     @name.setter
     def name(self, name: str) -> None:
-        """设置诊所名称
+        """Set clinic name
         
         Args:
-            name (str): 诊所名称
+            name (str): Clinic name
         """
         self.__name = str(name) if name is not None else None
     
     @suburb.setter
     def suburb(self, suburb: str) -> None:
-        """设置诊所所在郊区
+        """Set clinic suburb
         
         Args:
-            suburb (str): 诊所所在郊区
+            suburb (str): Clinic suburb
         """
         self.__suburb = str(suburb) if suburb is not None else None
     
     @address.setter
     def address(self, address: str) -> None:
-        """设置诊所地址
+        """Set clinic address
         
         Args:
-            address (str): 诊所地址
+            address (str): Clinic address
         """
         self.__address = str(address) if address is not None else None
     
     @phone.setter
     def phone(self, phone: str) -> None:
-        """设置诊所电话号码
+        """Set clinic phone number
         
         Args:
-            phone (str): 诊所电话号码
+            phone (str): Clinic phone number
         """
         self.__phone = str(phone) if phone is not None else None
     
     def __str__(self) -> str:
-        """返回诊所字符串表示
+        """Return string representation of clinic
         
         Returns:
-            str: 诊所字符串表示
+            str: String representation of clinic
         """
         return f"Clinic(id={self.__id}, name={self.__name}, suburb={self.__suburb})"
     
     def to_dict(self) -> dict:
-        """转换为字典
+        """Convert to dictionary
         
         Returns:
-            dict: 诊所字典表示
+            dict: Dictionary representation of clinic
         """
         return {
             "id": self.__id,
@@ -131,13 +131,13 @@ class Clinic:
     
     @classmethod
     def from_dict(cls, data: dict):
-        """从字典创建诊所
+        """Create clinic from dictionary
         
         Args:
-            data (dict): 诊所字典数据
+            data (dict): Dictionary data of clinic
             
         Returns:
-            Clinic: 诊所实体
+            Clinic: Clinic entity
         """
         return cls(
             id=data.get("id"),

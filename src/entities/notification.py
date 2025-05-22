@@ -2,21 +2,21 @@
 # -*- coding: utf-8 -*-
 
 """
-通知实体类
+Notification Entity Class
 """
 
 class Notification:
-    """<<Entity>> 通知实体类"""
+    """<<Entity>> Notification Entity Class"""
     
     def __init__(self, id=None, user_id=None, message=None, date=None, read=False):
-        """初始化通知实体
+        """Initialize notification entity
         
         Args:
-            id (int, optional): 通知ID
-            user_id (int, optional): 用户ID
-            message (str, optional): 通知消息内容
-            date (str, optional): 日期，格式为 "YYYY-MM-DD"
-            read (bool, optional): 是否已读
+            id (int, optional): Notification ID
+            user_id (int, optional): User ID
+            message (str, optional): Notification message content
+            date (str, optional): Date, format "YYYY-MM-DD"
+            read (bool, optional): Whether the notification has been read
         """
         self.__id = int(id) if id is not None else None
         self.__user_id = int(user_id) if user_id is not None else None
@@ -24,111 +24,111 @@ class Notification:
         self.__date = str(date) if date is not None else None
         self.__read = read if isinstance(read, bool) else (str(read).lower() == "true")
     
-    # 访问器方法
+    # Accessor methods
     @property
     def id(self) -> int:
-        """获取通知ID
+        """Get notification ID
         
         Returns:
-            int: 通知ID
+            int: Notification ID
         """
         return self.__id
     
     @property
     def user_id(self) -> int:
-        """获取用户ID
+        """Get user ID
         
         Returns:
-            int: 用户ID
+            int: User ID
         """
         return self.__user_id
     
     @property
     def message(self) -> str:
-        """获取通知消息内容
+        """Get notification message content
         
         Returns:
-            str: 通知消息内容
+            str: Notification message content
         """
         return self.__message
     
     @property
     def date(self) -> str:
-        """获取日期
+        """Get date
         
         Returns:
-            str: 日期
+            str: Date
         """
         return self.__date
     
     @property
     def read(self) -> bool:
-        """获取是否已读
+        """Get read status
         
         Returns:
-            bool: 是否已读
+            bool: Whether the notification has been read
         """
         return self.__read
     
-    # 修改器方法
+    # Modifier methods
     @user_id.setter
     def user_id(self, user_id: int) -> None:
-        """设置用户ID
+        """Set user ID
         
         Args:
-            user_id (int): 用户ID
+            user_id (int): User ID
         """
         self.__user_id = int(user_id) if user_id is not None else None
     
     @message.setter
     def message(self, message: str) -> None:
-        """设置通知消息内容
+        """Set notification message content
         
         Args:
-            message (str): 通知消息内容
+            message (str): Notification message content
         """
         self.__message = str(message) if message is not None else None
     
     @date.setter
     def date(self, date: str) -> None:
-        """设置日期
+        """Set date
         
         Args:
-            date (str): 日期
+            date (str): Date
         """
         self.__date = str(date) if date is not None else None
     
     @read.setter
     def read(self, read: bool) -> None:
-        """设置是否已读
+        """Set read status
         
         Args:
-            read (bool): 是否已读
+            read (bool): Whether the notification has been read
         """
         self.__read = read if isinstance(read, bool) else (str(read).lower() == "true")
     
-    # 业务方法
+    # Business methods
     def mark_as_read(self) -> None:
-        """将通知标记为已读"""
+        """Mark notification as read"""
         self.__read = True
     
     def mark_as_unread(self) -> None:
-        """将通知标记为未读"""
+        """Mark notification as unread"""
         self.__read = False
     
     def __str__(self) -> str:
-        """返回通知字符串表示
+        """Return string representation of notification
         
         Returns:
-            str: 通知字符串表示
+            str: String representation of notification
         """
         return f"Notification(id={self.__id}, user_id={self.__user_id}, date={self.__date}, read={self.__read})"
     
     def to_dict(self) -> dict:
-        """转换为字典
+        """Convert to dictionary
         
         Returns:
-            dict: 通知字典表示
+            dict: Dictionary representation of notification
         """
         return {
             "id": self.__id,
@@ -140,13 +140,13 @@ class Notification:
     
     @classmethod
     def from_dict(cls, data: dict):
-        """从字典创建通知
+        """Create notification from dictionary
         
         Args:
-            data (dict): 通知字典数据
+            data (dict): Dictionary data of notification
             
         Returns:
-            Notification: 通知实体
+            Notification: Notification entity
         """
         return cls(
             id=data.get("id"),

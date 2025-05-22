@@ -2,16 +2,16 @@
 # -*- coding: utf-8 -*-
 
 """
-日期工具类，提供日期和时间槽相关的操作
+Date utility class, provides date and time slot related operations
 """
 
 from datetime import datetime, timedelta
 from typing import List, Dict, Tuple
 
 class DateUtil:
-    """日期工具类，提供日期和时间槽相关的操作"""
+    """Date utility class, provides date and time slot related operations"""
     
-    # 时间槽映射，每个时间槽对应半小时
+    # Time slot mapping, each time slot corresponds to half an hour
     TIME_SLOT_MAP = {
         1: "9:00 AM - 9:30 AM",
         2: "9:30 AM - 10:00 AM",
@@ -33,13 +33,13 @@ class DateUtil:
     
     @staticmethod
     def get_time_slot_str(time_slot: int) -> str:
-        """获取时间槽的字符串表示
+        """Get string representation of time slot
         
         Args:
-            time_slot (int): 时间槽索引（1-16）
+            time_slot (int): Time slot index (1-16)
             
         Returns:
-            str: 时间槽的字符串表示
+            str: String representation of time slot
         """
         if time_slot in DateUtil.TIME_SLOT_MAP:
             return DateUtil.TIME_SLOT_MAP[time_slot]
@@ -47,13 +47,13 @@ class DateUtil:
     
     @staticmethod
     def get_time_slot_from_str(time_str: str) -> int:
-        """从字符串获取时间槽索引
+        """Get time slot index from string
         
         Args:
-            time_str (str): 时间字符串
+            time_str (str): Time string
             
         Returns:
-            int: 时间槽索引（1-16），如果不匹配则返回0
+            int: Time slot index (1-16), returns 0 if no match
         """
         for slot, slot_str in DateUtil.TIME_SLOT_MAP.items():
             if slot_str == time_str:
@@ -62,23 +62,23 @@ class DateUtil:
     
     @staticmethod
     def get_current_date() -> str:
-        """获取当前日期
+        """Get current date
         
         Returns:
-            str: 当前日期，格式为 "YYYY-MM-DD"
+            str: Current date in format "YYYY-MM-DD"
         """
         return datetime.now().strftime("%Y-%m-%d")
     
     @staticmethod
     def get_date_range(start_date: str, days: int) -> List[str]:
-        """获取日期范围
+        """Get date range
         
         Args:
-            start_date (str): 开始日期，格式为 "YYYY-MM-DD"
-            days (int): 天数
+            start_date (str): Start date in format "YYYY-MM-DD"
+            days (int): Number of days
             
         Returns:
-            List[str]: 日期列表
+            List[str]: List of dates
         """
         start = datetime.strptime(start_date, "%Y-%m-%d")
         date_list = []
@@ -91,13 +91,13 @@ class DateUtil:
     
     @staticmethod
     def is_future_date(date_str: str) -> bool:
-        """判断日期是否是未来日期
+        """Check if date is in the future
         
         Args:
-            date_str (str): 日期，格式为 "YYYY-MM-DD"
+            date_str (str): Date in format "YYYY-MM-DD"
             
         Returns:
-            bool: 如果是未来日期返回True，否则返回False
+            bool: True if date is in the future, False otherwise
         """
         try:
             date = datetime.strptime(date_str, "%Y-%m-%d").date()
@@ -108,13 +108,13 @@ class DateUtil:
     
     @staticmethod
     def is_valid_date(date_str: str) -> bool:
-        """判断日期是否有效
+        """Check if date is valid
         
         Args:
-            date_str (str): 日期，格式为 "YYYY-MM-DD"
+            date_str (str): Date in format "YYYY-MM-DD"
             
         Returns:
-            bool: 如果日期有效返回True，否则返回False
+            bool: True if date is valid, False otherwise
         """
         try:
             datetime.strptime(date_str, "%Y-%m-%d")
@@ -124,15 +124,15 @@ class DateUtil:
     
     @staticmethod
     def format_date(date_str: str, input_format: str = "%Y-%m-%d", output_format: str = "%d/%m/%Y") -> str:
-        """格式化日期
+        """Format date
         
         Args:
-            date_str (str): 日期字符串
-            input_format (str, optional): 输入格式. 默认为 "%Y-%m-%d".
-            output_format (str, optional): 输出格式. 默认为 "%d/%m/%Y".
+            date_str (str): Date string
+            input_format (str, optional): Input format. Defaults to "%Y-%m-%d".
+            output_format (str, optional): Output format. Defaults to "%d/%m/%Y".
             
         Returns:
-            str: 格式化后的日期字符串
+            str: Formatted date string
         """
         try:
             date = datetime.strptime(date_str, input_format)
@@ -142,13 +142,13 @@ class DateUtil:
     
     @staticmethod
     def get_day_of_week(date_str: str) -> str:
-        """获取星期几
+        """Get day of week
         
         Args:
-            date_str (str): 日期，格式为 "YYYY-MM-DD"
+            date_str (str): Date in format "YYYY-MM-DD"
             
         Returns:
-            str: 星期几
+            str: Day of week
         """
         try:
             date = datetime.strptime(date_str, "%Y-%m-%d")
@@ -159,13 +159,13 @@ class DateUtil:
     
     @staticmethod
     def time_slots_to_hex(time_slots: List[int]) -> str:
-        """将时间槽列表转换为16进制字符串
+        """Convert time slot list to hexadecimal string
         
         Args:
-            time_slots (List[int]): 时间槽索引列表（1-16）
+            time_slots (List[int]): List of time slot indices (1-16)
             
         Returns:
-            str: 16进制字符串
+            str: Hexadecimal string
         """
         if not time_slots:
             return "0"
@@ -173,20 +173,20 @@ class DateUtil:
         value = 0
         for slot in time_slots:
             if 1 <= slot <= 16:
-                # 由于时间槽是1-16，而位是0-15，需要减1
+                # Since time slots are 1-16 and bits are 0-15, need to subtract 1
                 value |= (1 << (slot - 1))
         
         return format(value, 'x')
     
     @staticmethod
     def hex_to_time_slots(hex_str: str) -> List[int]:
-        """将16进制字符串转换为时间槽列表
+        """Convert hexadecimal string to time slot list
         
         Args:
-            hex_str (str): 16进制字符串
+            hex_str (str): Hexadecimal string
             
         Returns:
-            List[int]: 时间槽索引列表（1-16）
+            List[int]: List of time slot indices (1-16)
         """
         if not hex_str or hex_str == "0":
             return []
@@ -197,7 +197,7 @@ class DateUtil:
             
             for i in range(16):
                 if value & (1 << i):
-                    # 由于位是0-15，而时间槽是1-16，需要加1
+                    # Since bits are 0-15 and time slots are 1-16, need to add 1
                     slots.append(i + 1)
             
             return slots
@@ -206,49 +206,49 @@ class DateUtil:
 
     @staticmethod
     def shift_date(base_date: str, offset: int) -> str:
-        """获取偏移后的日期
+        """Get date after offset
 
         Args:
-            base_date (str): 起始日期（YYYY-MM-DD）
-            offset (int): 偏移天数，负值为向前
+            base_date (str): Base date (YYYY-MM-DD)
+            offset (int): Day offset, negative for earlier dates
 
         Returns:
-            str: 偏移后的日期
+            str: Date after offset
         """
         base = datetime.strptime(base_date, "%Y-%m-%d")
         new_date = base + timedelta(days=offset)
         return new_date.strftime("%Y-%m-%d")
 
 
-# 测试代码
+# Test code
 if __name__ == "__main__":
-    # 日期相关功能测试
-    print("当前日期:", DateUtil.get_current_date())
+    # Date functionality test
+    print("Current date:", DateUtil.get_current_date())
     
     today = DateUtil.get_current_date()
     tomorrow = DateUtil.get_date_range(today, 1)[1]
-    print(f"明天: {tomorrow}")
+    print(f"Tomorrow: {tomorrow}")
     
-    print(f"{tomorrow} 是否是未来日期: {DateUtil.is_future_date(tomorrow)}")
-    print(f"{tomorrow} 是星期几: {DateUtil.get_day_of_week(tomorrow)}")
+    print(f"Is {tomorrow} a future date: {DateUtil.is_future_date(tomorrow)}")
+    print(f"Day of week for {tomorrow}: {DateUtil.get_day_of_week(tomorrow)}")
     
-    # 时间槽相关功能测试
-    print("\n时间槽与字符串对应关系：")
+    # Time slot functionality test
+    print("\nTime slot string mappings:")
     for i in range(1, 17):
         time_slot_str = DateUtil.get_time_slot_str(i)
-        print(f"槽位 {i}: {time_slot_str}")
+        print(f"Slot {i}: {time_slot_str}")
     
-    # 示例：从字符串获取时间槽索引
+    # Example: Get time slot index from string
     test_time_str = "9:00 AM - 9:30 AM"
     time_slot = DateUtil.get_time_slot_from_str(test_time_str)
-    print(f"\n时间槽 {test_time_str} 对应的槽位: {time_slot}")
+    print(f"\nTime slot for {test_time_str}: {time_slot}")
     
-    # 示例：将时间槽列表转换为16进制字符串
+    # Example: Convert time slot list to hexadecimal string
     test_time_slots = [1, 5, 9, 13]
     hex_str = DateUtil.time_slots_to_hex(test_time_slots)
-    print(f"\n时间槽 {test_time_slots} 转换为16进制字符串: {hex_str}")
+    print(f"\nTime slots {test_time_slots} converted to hexadecimal: {hex_str}")
     
-    # 示例：将16进制字符串转换为时间槽列表
+    # Example: Convert hexadecimal string to time slot list
     test_hex_str = "0x1357"
     time_slots = DateUtil.hex_to_time_slots(test_hex_str)
-    print(f"\n16进制字符串 {test_hex_str} 转换为时间槽: {time_slots}") 
+    print(f"\nHexadecimal {test_hex_str} converted to time slots: {time_slots}") 

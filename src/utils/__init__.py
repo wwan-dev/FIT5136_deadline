@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-工具模块初始化文件
+Utility module initialization file
 """
 
 from src.utils.id_generator import IdGenerator

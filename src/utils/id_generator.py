@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-ID生成器工具类，用于为实体生成唯一标识符
+ID Generator utility class, used to generate unique identifiers for entities
 """
 
 import os
@@ -10,35 +10,35 @@ import csv
 from typing import Dict, Optional
 
 class IdGenerator:
-    """ID生成器工具类，用于为实体生成唯一标识符"""
+    """ID Generator utility class, used to generate unique identifiers for entities"""
     
-    # 存储各实体类型的最大ID值
+    # Store maximum ID values for each entity type
     __max_ids: Dict[str, int] = {}
     
     @classmethod
     def initialize(cls, data_dir: str = "data") -> None:
-        """初始化ID生成器，获取各类型实体的最大ID
+        """Initialize ID generator, get maximum ID for each entity type
         
         Args:
-            data_dir (str, optional): 数据目录. 默认为 "data".
+            data_dir (str, optional): Data directory. Defaults to "data".
         """
-        # 确保数据目录存在
+        # Ensure data directory exists
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)
         
-        # 初始化最大ID字典
+        # Initialize maximum ID dictionary
         cls.__max_ids = {}
         
-        # 查找数据目录下的所有CSV文件
+        # Find all CSV files in the data directory
         for filename in os.listdir(data_dir):
             if filename.endswith(".csv"):
                 entity_type = filename.replace(".csv", "")
                 file_path = os.path.join(data_dir, filename)
                 
-                # 初始化最大ID为0
+                # Initialize maximum ID to 0
                 max_id = 0
                 
-                # 读取CSV文件获取最大ID
+                # Read CSV file to get maximum ID
                 if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
                     with open(file_path, 'r', newline='', encoding='utf-8') as csvfile:
                         reader = csv.DictReader(csvfile)
@@ -50,48 +50,48 @@ class IdGenerator:
                                 except (ValueError, TypeError):
                                     pass
                 
-                # 保存最大ID值
+                # Save maximum ID value
                 cls.__max_ids[entity_type] = max_id
     
     @classmethod
     def next_id(cls, entity_type: str) -> int:
-        """获取指定实体类型的下一个可用ID
+        """Get the next available ID for the specified entity type
         
         Args:
-            entity_type (str): 实体类型名称（如"users", "clinics", "doctors", "doctor_schedules", "appointments", "notifications"）
+            entity_type (str): Entity type name (e.g., "users", "clinics", "doctors", "doctor_schedules", "appointments", "notifications")
             
         Returns:
-            int: 下一个可用的ID
+            int: Next available ID
             
         Raises:
-            ValueError: 如果未初始化ID生成器
+            ValueError: If the ID generator is not initialized
         """
-        # 如果没有初始化，先初始化
+        # If not initialized, initialize first
         if not cls.__max_ids:
             cls.initialize()
         
-        # 获取当前实体类型的最大ID
+        # Get current maximum ID for the entity type
         max_id = cls.__max_ids.get(entity_type, 0)
         
-        # 生成下一个ID
+        # Generate next ID
         next_id = max_id + 1
         
-        # 更新最大ID记录
+        # Update maximum ID record
         cls.__max_ids[entity_type] = next_id
         
         return next_id
     
     @classmethod
     def get_max_id(cls, entity_type: str) -> int:
-        """获取指定实体类型的当前最大ID
+        """Get current maximum ID for the specified entity type
         
         Args:
-            entity_type (str): 实体类型名称
+            entity_type (str): Entity type name
             
         Returns:
-            int: 当前最大ID，如果实体类型不存在则返回0
+            int: Current maximum ID, returns 0 if entity type doesn't exist
         """
-        # 如果没有初始化，先初始化
+        # If not initialized, initialize first
         if not cls.__max_ids:
             cls.initialize()
             

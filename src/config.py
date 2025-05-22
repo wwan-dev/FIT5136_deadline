@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 """
-配置文件，定义系统常量和配置项
+Configuration file, defines system constants and configuration items
 """
 
-# 时间槽定义，每个时间槽30分钟
+# Time slot definitions, each time slot is 30 minutes
 TIME_SLOTS = {
     0: "09:00-09:30",
     1: "09:30-10:00",
@@ -25,10 +25,10 @@ TIME_SLOTS = {
     15: "17:30-18:00"
 }
 
-# 16进制数位对应的时间槽
-# 例如：0x8000 表示只在09:00-09:30时间段坐诊
-# 0xFFFF 表示全天坐诊
-# 0x0000 表示全天不坐诊
+# Hexadecimal bit positions corresponding to time slots
+# Example: 0x8000 indicates available only at 09:00-09:30
+# 0xFFFF indicates available all day
+# 0x0000 indicates not available all day
 HEX_TIME_SLOTS = {
     0: 0x8000,  # 09:00-09:30
     1: 0x4000,  # 09:30-10:00
@@ -48,13 +48,13 @@ HEX_TIME_SLOTS = {
     15: 0x0001   # 17:30-18:00
 }
 
-# 常用时间槽组合
+# Common time slot combinations
 MORNING_SLOTS = 0xFC00  # 09:00-12:00
 AFTERNOON_SLOTS = 0x03FF  # 13:00-18:00
-ALL_DAY_SLOTS = 0xFFFF  # 全天
-NO_SLOTS = 0x0000  # 不坐诊
+ALL_DAY_SLOTS = 0xFFFF  # All day
+NO_SLOTS = 0x0000  # Not available
 
-# 预约状态
+# Appointment status
 APPOINTMENT_STATUS = {
     "SCHEDULED": "Scheduled",
     "COMPLETED": "Completed",
@@ -62,7 +62,7 @@ APPOINTMENT_STATUS = {
     "CANCELLED_BY_CLINIC": "Cancelled by Clinic"
 }
 
-# 预约原因
+# Appointment reasons
 APPOINTMENT_REASONS = {
     "GENERAL": "General Consultation",
     "VACCINATION": "Vaccination",
@@ -72,15 +72,15 @@ APPOINTMENT_REASONS = {
     "OTHER": "Other"
 }
 
-# 诊所服务配置
-# 由于services字段从clinics.csv中移除，在这里定义诊所提供的服务
+# Clinic service configuration
+# Since the services field was removed from clinics.csv, define clinic services here
 CLINIC_SERVICES = {
     1: ["General Consultation", "Vaccination", "Referral", "Chronic Disease Management", "Mental Health Consultation"],
     2: ["General Consultation", "Vaccination", "Referral", "Chronic Disease Management"],
     3: ["General Consultation", "Vaccination", "Mental Health Consultation"]
 }
 
-# 数据文件路径
+# Data file paths
 DATA_DIR = "../data"
 USERS_FILE = f"{DATA_DIR}/users.csv"
 DOCTORS_FILE = f"{DATA_DIR}/doctors.csv"

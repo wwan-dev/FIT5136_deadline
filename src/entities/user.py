@@ -2,27 +2,27 @@
 # -*- coding: utf-8 -*-
 
 """
-用户实体类
+User Entity Class
 """
 
 class User:
-    """<<Entity>> 用户实体类"""
+    """<<Entity>> User Entity Class"""
     
     def __init__(self, id=None, email=None, password=None, role=None, name=None, phone=None, address=None,
                  date_of_birth=None, gender=None, medical_history=None):
-        """初始化用户实体
+        """Initialize user entity
         
         Args:
-            id (int, optional): 用户ID
-            email (str, optional): 电子邮箱
-            password (str, optional): 密码
-            role (str, optional): 角色（patient/admin）
-            name (str, optional): 姓名
-            phone (str, optional): 电话号码
-            address (str, optional): 地址
-            date_of_birth (str, optional): 出生日期，格式为 "YYYY-MM-DD"，仅患者需要
-            gender (str, optional): 性别，仅患者需要
-            medical_history (str, optional): 病史，仅患者需要
+            id (int, optional): User ID
+            email (str, optional): Email address
+            password (str, optional): Password
+            role (str, optional): Role (patient/admin)
+            name (str, optional): Name
+            phone (str, optional): Phone number
+            address (str, optional): Address
+            date_of_birth (str, optional): Date of birth, format "YYYY-MM-DD", only required for patients
+            gender (str, optional): Gender, only required for patients
+            medical_history (str, optional): Medical history, only required for patients
         """
         self.__id = int(id) if id is not None else None
         self.__email = str(email) if email is not None else None
@@ -35,201 +35,201 @@ class User:
         self.__gender = str(gender) if gender is not None else None
         self.__medical_history = str(medical_history) if medical_history is not None else None
     
-    # 访问器方法
+    # Accessor methods
     @property
     def id(self) -> int:
-        """获取用户ID
+        """Get user ID
         
         Returns:
-            int: 用户ID
+            int: User ID
         """
         return self.__id
     
     @property
     def email(self) -> str:
-        """获取用户电子邮箱
+        """Get user email
         
         Returns:
-            str: 用户电子邮箱
+            str: User email
         """
         return self.__email
     
     @property
     def password(self) -> str:
-        """获取用户密码
+        """Get user password
         
         Returns:
-            str: 用户密码
+            str: User password
         """
         return self.__password
     
     @property
     def role(self) -> str:
-        """获取用户角色
+        """Get user role
         
         Returns:
-            str: 用户角色
+            str: User role
         """
         return self.__role
     
     @property
     def name(self) -> str:
-        """获取用户姓名
+        """Get user name
         
         Returns:
-            str: 用户姓名
+            str: User name
         """
         return self.__name
     
     @property
     def phone(self) -> str:
-        """获取用户电话号码
+        """Get user phone number
         
         Returns:
-            str: 用户电话号码
+            str: User phone number
         """
         return self.__phone
     
     @property
     def address(self) -> str:
-        """获取用户地址
+        """Get user address
         
         Returns:
-            str: 用户地址
+            str: User address
         """
         return self.__address
     
     @property
     def date_of_birth(self) -> str:
-        """获取用户出生日期
+        """Get user date of birth
         
         Returns:
-            str: 用户出生日期
+            str: User date of birth
         """
         return self.__date_of_birth
     
     @property
     def gender(self) -> str:
-        """获取用户性别
+        """Get user gender
         
         Returns:
-            str: 用户性别
+            str: User gender
         """
         return self.__gender
     
     @property
     def medical_history(self) -> str:
-        """获取用户病史
+        """Get user medical history
         
         Returns:
-            str: 用户病史
+            str: User medical history
         """
         return self.__medical_history
     
-    # 修改器方法
+    # Modifier methods
     @email.setter
     def email(self, email: str) -> None:
-        """设置用户电子邮箱
+        """Set user email
         
         Args:
-            email (str): 用户电子邮箱
+            email (str): User email
         """
         self.__email = str(email) if email is not None else None
     
     @password.setter
     def password(self, password: str) -> None:
-        """设置用户密码
+        """Set user password
         
         Args:
-            password (str): 用户密码
+            password (str): User password
         """
         self.__password = str(password) if password is not None else None
     
     @role.setter
     def role(self, role: str) -> None:
-        """设置用户角色
+        """Set user role
         
         Args:
-            role (str): 用户角色
+            role (str): User role
         """
         self.__role = str(role) if role is not None else None
     
     @name.setter
     def name(self, name: str) -> None:
-        """设置用户姓名
+        """Set user name
         
         Args:
-            name (str): 用户姓名
+            name (str): User name
         """
         self.__name = str(name) if name is not None else None
     
     @phone.setter
     def phone(self, phone: str) -> None:
-        """设置用户电话号码
+        """Set user phone number
         
         Args:
-            phone (str): 用户电话号码
+            phone (str): User phone number
         """
         self.__phone = str(phone) if phone is not None else None
     
     @address.setter
     def address(self, address: str) -> None:
-        """设置用户地址
+        """Set user address
         
         Args:
-            address (str): 用户地址
+            address (str): User address
         """
         self.__address = str(address) if address is not None else None
     
     @date_of_birth.setter
     def date_of_birth(self, date_of_birth: str) -> None:
-        """设置用户出生日期
+        """Set user date of birth
         
         Args:
-            date_of_birth (str): 用户出生日期
+            date_of_birth (str): User date of birth
         """
         self.__date_of_birth = str(date_of_birth) if date_of_birth is not None else None
     
     @gender.setter
     def gender(self, gender: str) -> None:
-        """设置用户性别
+        """Set user gender
         
         Args:
-            gender (str): 用户性别
+            gender (str): User gender
         """
         self.__gender = str(gender) if gender is not None else None
     
     @medical_history.setter
     def medical_history(self, medical_history: str) -> None:
-        """设置用户病史
+        """Set user medical history
         
         Args:
-            medical_history (str): 用户病史
+            medical_history (str): User medical history
         """
         self.__medical_history = str(medical_history) if medical_history is not None else None
     
-    # 业务方法
+    # Business methods
     def is_admin(self) -> bool:
-        """判断是否是管理员
+        """Check if user is an admin
         
         Returns:
-            bool: 如果是管理员返回True，否则返回False
+            bool: True if user is an admin, False otherwise
         """
         return self.__role == "admin"
     
     def is_patient(self) -> bool:
-        """判断是否是患者
+        """Check if user is a patient
         
         Returns:
-            bool: 如果是患者返回True，否则返回False
+            bool: True if user is a patient, False otherwise
         """
         return self.__role == "patient"
     
     def __str__(self) -> str:
-        """返回用户字符串表示
+        """Return string representation of user
         
         Returns:
-            str: 用户字符串表示
+            str: String representation of user
         """
         if self.is_patient():
             return f"User(id={self.__id}, email={self.__email}, role={self.__role}, name={self.__name}, gender={self.__gender})"
@@ -237,10 +237,10 @@ class User:
             return f"User(id={self.__id}, email={self.__email}, role={self.__role}, name={self.__name})"
     
     def to_dict(self) -> dict:
-        """转换为字典
+        """Convert to dictionary
         
         Returns:
-            dict: 用户字典表示
+            dict: Dictionary representation of user
         """
         data = {
             "id": self.__id,
@@ -252,7 +252,7 @@ class User:
             "address": self.__address
         }
         
-        # 仅当用户是患者时添加患者特有字段
+        # Only add patient-specific fields if user is a patient
         if self.is_patient():
             data.update({
                 "date_of_birth": self.__date_of_birth,
@@ -264,13 +264,13 @@ class User:
     
     @classmethod
     def from_dict(cls, data: dict):
-        """从字典创建用户
+        """Create user from dictionary
         
         Args:
-            data (dict): 用户字典数据
+            data (dict): Dictionary data of user
             
         Returns:
-            User: 用户实体
+            User: User entity
         """
         return cls(
             id=data.get("id"),

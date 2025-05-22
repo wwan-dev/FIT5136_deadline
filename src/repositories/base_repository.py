@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-基础仓库类
+Base Repository Class
 """
 
 import os
@@ -13,37 +13,37 @@ from src.utils.id_generator import IdGenerator
 T = TypeVar('T')
 
 class BaseRepository(Generic[T]):
-    """基础仓库类，提供通用的CRUD操作"""
+    """Base repository class, provides generic CRUD operations"""
     
     def __init__(self, data_file: str, entity_class: Type[T]):
-        """初始化仓库
+        """Initialize repository
         
         Args:
-            data_file (str): 数据文件路径
-            entity_class (Type[T]): 实体类
+            data_file (str): Data file path
+            entity_class (Type[T]): Entity class
         """
         self.data_file = data_file
         self.entity_class = entity_class
         
-        # 确保数据文件存在
+        # Ensure data file exists
         FileUtil.ensure_file_exists(data_file)
         
-        # 获取实体类型
+        # Get entity type
         file_name = os.path.basename(data_file)
         self.entity_type = os.path.splitext(file_name)[0]
     
     def get_all(self) -> List[T]:
-        """获取所有实体
+        """Get all entities
         
         Returns:
-            List[T]: 实体列表
+            List[T]: List of entities
         """
         entities = []
         
-        # 读取CSV文件
+        # Read CSV file
         rows = FileUtil.read_csv(self.data_file)
         
-        # 转换为实体对象
+        # Convert to entity objects
         for row in rows:
             entity = self.entity_class.from_dict(row)
             entities.append(entity)
@@ -51,13 +51,13 @@ class BaseRepository(Generic[T]):
         return entities
     
     def get_by_id(self, entity_id) -> Optional[T]:
-        """根据ID获取实体
+        """Get entity by ID
         
         Args:
-            entity_id: 实体ID
+            entity_id: Entity ID
             
         Returns:
-            Optional[T]: 实体，如果不存在则返回None
+            Optional[T]: Entity, returns None if not found
         """
         entities = self.get_all()
         
@@ -68,54 +68,54 @@ class BaseRepository(Generic[T]):
         return None
     
     def add(self, entity: T) -> T:
-        """添加实体
+        """Add entity
         
         Args:
-            entity (T): 要添加的实体
+            entity (T): Entity to add
             
         Returns:
-            T: 添加后的实体
+            T: Added entity
         """
-        # 如果是新实体，使用IdGenerator生成ID
+        # If new entity, generate ID using IdGenerator
         if entity.id is None:
-            # 使用entity_type生成ID
+            # Use entity_type to generate ID
             next_id = IdGenerator.next_id(self.entity_type)
             
-            # 由于实体类没有id的setter，需要使用反射设置id属性
-            # 这里假设实体类的id被存储在_Entity__id中（Python名称修饰）
+            # Since entity class doesn't have id setter, use reflection to set id attribute
+            # Assuming entity class's id is stored in _Entity__id (Python name mangling)
             setattr(entity, f"_{entity.__class__.__name__}__id", next_id)
         
-        # 将实体转换为字典
+        # Convert entity to dictionary
         entity_dict = entity.to_dict()
         
-        # 转换列表为分号分隔的字符串（用于CSV存储）
+        # Convert lists to semicolon-separated strings (for CSV storage)
         for key, value in entity_dict.items():
             if isinstance(value, list):
                 entity_dict[key] = ";".join([str(item) for item in value])
         
-        # 追加到CSV文件
+        # Append to CSV file
         FileUtil.append_csv(self.data_file, entity_dict)
         
         return entity
     
     def update(self, entity: T) -> T:
-        """更新实体
+        """Update entity
         
         Args:
-            entity (T): 要更新的实体
+            entity (T): Entity to update
             
         Returns:
-            T: 更新后的实体
+            T: Updated entity
         """
-        # 将实体转换为字典
+        # Convert entity to dictionary
         entity_dict = entity.to_dict()
         
-        # 转换列表为分号分隔的字符串（用于CSV存储）
+        # Convert lists to semicolon-separated strings (for CSV storage)
         for key, value in entity_dict.items():
             if isinstance(value, list):
                 entity_dict[key] = ";".join([str(item) for item in value])
         
-        # 更新CSV文件中的行
+        # Update row in CSV file
         FileUtil.update_row(
             self.data_file,
             lambda row: str(row.get('id')) == str(entity.id),
@@ -125,28 +125,28 @@ class BaseRepository(Generic[T]):
         return entity
     
     def delete(self, entity_id) -> bool:
-        """删除实体
+        """Delete entity
         
         Args:
-            entity_id: 实体ID
+            entity_id: Entity ID
             
         Returns:
-            bool: 是否删除成功
+            bool: Whether deletion was successful
         """
-        # 从CSV文件中删除行
+        # Delete row from CSV file
         return FileUtil.delete_row(
             self.data_file,
             lambda row: str(row.get('id')) == str(entity_id)
         )
     
     def _save_all(self, entities: List[T]) -> None:
-        """保存所有实体到文件
+        """Save all entities to file
         
         Args:
-            entities (List[T]): 实体列表
+            entities (List[T]): List of entities
         """
-        # 将实体转换为字典
+        # Convert entities to dictionaries
         rows = [entity.to_dict() for entity in entities]
         
-        # 写入CSV文件
+        # Write to CSV file
         FileUtil.write_csv(self.data_file, rows) 

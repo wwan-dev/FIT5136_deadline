@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-实体模块
+Entity Module
 """
 
 from src.entities.user import User

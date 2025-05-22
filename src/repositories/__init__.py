@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-仓库模块
+Repository Module
 """
 
 from src.repositories.base_repository import BaseRepository
