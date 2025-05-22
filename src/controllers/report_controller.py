@@ -12,6 +12,7 @@ from datetime import datetime
 from src.entities.user import User
 from src.services.report_service import ReportService
 from src.repositories.clinic_repository import ClinicRepository
+from src.repositories.doctor_repository import DoctorRepository
 
 class ReportController:
     """Report Controller"""
@@ -24,6 +25,7 @@ class ReportController:
         """
         self.__report_svc = ReportService()
         self.__clinic_repo = ClinicRepository()
+        self.__doctor_repo = DoctorRepository()
         self.__current_user = user
         self.__should_return_to_main = False  # Flag to return to main menu
     
@@ -227,30 +229,44 @@ class ReportController:
                 self.wait_for_key()
                 return
             
+            # Check for error
+            if 'error' in report_data:
+                print(f"Error: {report_data['error']}")
+                self.wait_for_key()
+                return
+            
             # Display report
             self.print_header(f"Clinic Report: {selected_clinic.name}")
-            start, end = self.__report_svc._get_date_range(range_type, start_date, end_date)
-            print(f"Date range: {start} to {end}")
+            print(f"Date range: {report_data['date_range']}")
             print(f"Total appointments: {report_data['total_appointments']}")
             print()
             
             # Peak time analysis
             print("Appointment Distribution by Hour:")
-            max_count = max(report_data['hour_distribution'].values()) if report_data['hour_distribution'] else 0
-            
-            for hour in sorted(report_data['hour_distribution'].keys()):
-                count = report_data['hour_distribution'][hour]
-                bar_length = int((count / max_count) * 20) if max_count > 0 else 0
-                is_peak = hour in report_data['peak_hours']
-                hour_display = f"{hour}:00-{hour+1}:00"
-                peak_marker = " (PEAK)" if is_peak else ""
+            if 'hour_distribution' in report_data and report_data['hour_distribution']:
+                max_count = max(report_data['hour_distribution'].values()) if report_data['hour_distribution'] else 0
                 
-                print(f"{hour_display:<10} {count:>3} {'█' * bar_length}{peak_marker}")
+                for hour in sorted(report_data['hour_distribution'].keys()):
+                    count = report_data['hour_distribution'][hour]
+                    bar_length = int((count / max_count) * 20) if max_count > 0 else 0
+                    is_peak = hour in report_data['peak_hours'] if 'peak_hours' in report_data else False
+                    hour_display = f"{hour}:00-{hour+1}:00"
+                    peak_marker = " (PEAK)" if is_peak else ""
+                    
+                    print(f"{hour_display:<10} {count:>3} {'█' * bar_length}{peak_marker}")
+            else:
+                print("No hour distribution data available")
             
             print("\nDoctor Appointment Distribution:")
-            for doctor_id, count in report_data['doctor_distribution'].items():
-                doctor = self.__report_svc.get_doctor_name(doctor_id)
-                print(f"{doctor:<20}: {count} appointments")
+            if 'doctor_distribution' in report_data:
+                for doctor_id, count in report_data['doctor_distribution'].items():
+                    doctor_name = "Unknown"
+                    doctor = self.__doctor_repo.get_by_id(doctor_id)
+                    if doctor:
+                        doctor_name = doctor.full_name
+                    print(f"{doctor_name:<20}: {count} appointments")
+            else:
+                print("No doctor distribution data available")
             
             # Export options
             print("\nSelect an option:")
@@ -262,8 +278,10 @@ class ReportController:
             if choice == "1":
                 self._export_report(report_data, "clinic")
             
-        except (ValueError, IndexError):
-            print("Invalid selection")
+        except (ValueError, IndexError) as e:
+            print(f"Invalid selection: {e}")
+        except Exception as e:
+            print(f"An error occurred: {e}")
         
         self.wait_for_key()
     

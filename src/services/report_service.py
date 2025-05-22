@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-报告服务类 - 处理统计报告相关业务逻辑
+Report Service - Handles business logic for statistical reports
 """
 
 import os
@@ -19,10 +19,10 @@ from src.repositories.doctor_repository import DoctorRepository
 from src.repositories.clinic_repository import ClinicRepository
 
 class ReportService:
-    """报告服务类"""
+    """Report Service"""
     
     def __init__(self):
-        """初始化报告服务"""
+        """Initialize report service"""
         self.__appointment_repo = AppointmentRepository()
         self.__doctor_repo = DoctorRepository()
         self.__clinic_repo = ClinicRepository()
@@ -163,16 +163,16 @@ class ReportService:
         return report_data
     
     def generate_clinic_report(self, clinic_id: int, date_range_type: str, start_date: str = None, end_date: str = None) -> Dict[str, Any]:
-        """生成诊所预约数据报告
+        """Generate clinic appointment data report
         
         Args:
-            clinic_id (int): 诊所ID
-            date_range_type (str): 日期范围类型，可选值：'day', 'week', 'month', 'custom'
-            start_date (str, optional): 自定义范围起始日期，格式为 "YYYY-MM-DD"
-            end_date (str, optional): 自定义范围结束日期，格式为 "YYYY-MM-DD"
+            clinic_id (int): Clinic ID
+            date_range_type (str): Date range type, options: 'day', 'week', 'month', 'custom'
+            start_date (str, optional): Custom range start date in format "YYYY-MM-DD"
+            end_date (str, optional): Custom range end date in format "YYYY-MM-DD"
             
         Returns:
-            Dict[str, Any]: 诊所报告数据
+            Dict[str, Any]: Clinic report data
         """
         # 获取日期范围
         start_date, end_date = self._get_date_range(date_range_type, start_date, end_date)
@@ -196,13 +196,13 @@ class ReportService:
         total_appointments = len(valid_appointments)
         
         # 按医生统计预约数
-        doctor_stats = defaultdict(int)
+        doctor_distribution = defaultdict(int)
         for appointment in valid_appointments:
-            doctor_stats[appointment.doctor_id] += 1
+            doctor_distribution[appointment.doctor_id] += 1
         
         # 获取医生详细信息
         doctor_details = []
-        for doctor_id, count in doctor_stats.items():
+        for doctor_id, count in doctor_distribution.items():
             doctor = self.__doctor_repo.get_by_id(doctor_id)
             if doctor:
                 doctor_details.append({
@@ -229,9 +229,23 @@ class ReportService:
         # 高峰时间分析
         time_slot_stats = Counter()
         for appointment in valid_appointments:
-            time_slot_stats[appointment.time_slot] += 1
+            # Convert time slot (0-15) to hour (9-18)
+            # Time slots 0-5 correspond to 9:00-12:00 (morning hours 9-12)
+            # Time slots 6-15 correspond to 13:00-18:00 (afternoon hours 13-18)
+            hour = 9 + (appointment.time_slot // 2)
+            if appointment.time_slot > 5:  # Afternoon slots start at index 6
+                hour += 1  # Skip lunch hour (12-13)
+            time_slot_stats[hour] += 1
         
-        # 找出预约量最大的3个时间槽
+        # Find the top 3 peak hours
+        peak_hours = [hour for hour, _ in time_slot_stats.most_common(3)]
+        
+        # Create hour distribution data
+        hour_distribution = {}
+        for hour in range(9, 19):  # 9:00 to 18:00
+            hour_distribution[hour] = time_slot_stats[hour]
+        
+        # Find top 3 peak time slots
         peak_times = []
         for time_slot, count in time_slot_stats.most_common(3):
             peak_times.append({
@@ -244,11 +258,14 @@ class ReportService:
         report_data = {
             "clinic_id": clinic_id,
             "clinic_name": clinic.name,
-            "date_range": f"{start_date} 至 {end_date}",
+            "date_range": f"{start_date} to {end_date}",
             "total_appointments": total_appointments,
+            "doctor_distribution": doctor_distribution,
             "doctor_stats": doctor_details,
             "reason_stats": reason_details,
-            "peak_times": peak_times
+            "peak_times": peak_times,
+            "hour_distribution": hour_distribution,
+            "peak_hours": peak_hours
         }
         
         return report_data
