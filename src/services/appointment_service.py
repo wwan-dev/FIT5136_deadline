@@ -450,4 +450,68 @@ class AppointmentService:
                 "appointment_obj": appointment  # 包含原始对象，便于操作
             })
         
-        return filtered_appointments 
+        return filtered_appointments
+
+    def _show_all_appointments(self) -> None:
+        """显示系统所有预约（管理员专用）"""
+        self.print_header("所有预约")
+        appointments = self.__appointment_service.get_all_appointments()
+
+        if not appointments:
+            print("暂无预约记录")
+            self.wait_for_key()
+            return
+
+        print(f"{'ID':<5}{'用户ID':<8}{'日期':<12}{'时间':<18}{'医生':<15}{'诊所':<15}{'状态':<12}")
+        print("-" * 90)
+        for appt in appointments:
+            print(f"{appt['id']:<5}{appt['user_id']:<8}{appt['date']:<12}{appt['time_str']:<18}"
+                  f"{appt['doctor_name']:<15}{appt['clinic_name']:<15}{appt['status']:<12}")
+        self.wait_for_key()
+
+    def _cancel_by_id(self) -> None:
+        """管理员手动取消任意预约"""
+        try:
+            appt_id = int(input("\n输入要取消的预约ID（0返回）: ").strip())
+            if appt_id == 0:
+                return
+            appointment = self.__appointment_service.get_appointment_by_id(appt_id)
+            if not appointment or not appointment.is_scheduled():
+                print("预约不存在或状态不可取消")
+                self.wait_for_key()
+                return
+            if input("确认取消该预约？(Y/N): ").strip().upper() == "Y":
+                if self.__appointment_service.cancel_appointment(appointment):
+                    print("已取消")
+                else:
+                    print("取消失败")
+            else:
+                print("操作取消")
+        except ValueError:
+            print("请输入有效的数字")
+        self.wait_for_key()
+
+    def _search_as_admin(self) -> None:
+        """管理员筛选预约（不限制 user_id）"""
+        dummy_user = User(user_id=-1)  # 用于绕过 user_id 限制
+        self.search_appointments(dummy_user)
+
+    def get_all_appointments(self) -> List[Dict]:
+        """获取系统中所有预约（管理员视图）"""
+        appointments = self.__appointment_repo.get_all()
+
+        result = []
+        for appointment in appointments:
+            clinic = self.__clinic_repo.get_by_id(appointment.clinic_id)
+            doctor = self.__doctor_repo.get_by_id(appointment.doctor_id)
+            result.append({
+                "id": appointment.id,
+                "user_id": appointment.user_id,
+                "date": appointment.date,
+                "time_slot": appointment.time_slot,
+                "time_str": DateUtil.get_time_slot_str(appointment.time_slot),
+                "clinic_name": clinic.name if clinic else "未知",
+                "doctor_name": doctor.full_name if doctor else "未知",
+                "status": appointment.status
+            })
+        return result

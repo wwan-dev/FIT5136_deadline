@@ -463,7 +463,51 @@ class AppointmentController:
             print("\n取消预约失败，可能预约已被取消")
         
         self.wait_for_key()
-    
+
+    def _show_all_appointments(self) -> None:
+        """显示系统所有预约（管理员专用）"""
+        self.print_header("所有预约")
+        appointments = self.__appointment_service.get_all_appointments()
+
+        if not appointments:
+            print("暂无预约记录")
+            self.wait_for_key()
+            return
+
+        print(f"{'ID':<5}{'用户ID':<8}{'日期':<12}{'时间':<18}{'医生':<15}{'诊所':<15}{'状态':<12}")
+        print("-" * 90)
+        for appt in appointments:
+            print(f"{appt['id']:<5}{appt['user_id']:<8}{appt['date']:<12}{appt['time_str']:<18}"
+                  f"{appt['doctor_name']:<15}{appt['clinic_name']:<15}{appt['status']:<12}")
+        self.wait_for_key()
+
+    def _cancel_by_id(self) -> None:
+        """管理员手动取消任意预约"""
+        try:
+            appt_id = int(input("\n输入要取消的预约ID（0返回）: ").strip())
+            if appt_id == 0:
+                return
+            appointment = self.__appointment_service.get_appointment_by_id(appt_id)
+            if not appointment or not appointment.is_scheduled():
+                print("预约不存在或状态不可取消")
+                self.wait_for_key()
+                return
+            if input("确认取消该预约？(Y/N): ").strip().upper() == "Y":
+                if self.__appointment_service.cancel_appointment(appointment):
+                    print("已取消")
+                else:
+                    print("取消失败")
+            else:
+                print("操作取消")
+        except ValueError:
+            print("请输入有效的数字")
+        self.wait_for_key()
+
+    def _search_as_admin(self) -> None:
+        """管理员筛选预约（不限制 user_id）"""
+        dummy_user = User(id=-1)  # 用于绕过 user_id 限制
+        self.search_appointments(dummy_user)
+
     def search_appointments(self, user: User) -> None:
         """搜索预约
         
@@ -587,7 +631,29 @@ class AppointmentController:
             else:
                 print("无效的选择")
                 self.wait_for_key()
-    
+
+    def run_admin_menu(self) -> None:
+        """管理员预约管理菜单"""
+        while True:
+            self.print_header("预约管理 - 管理员")
+            print("1. 查看全部预约")
+            print("2. 按条件筛选预约")
+            print("3. 按ID取消预约")
+            print("0. 返回上一级")
+            choice = input("\n请选择操作: ").strip()
+
+            if choice == "1":
+                self._show_all_appointments()
+            elif choice == "2":
+                self._search_as_admin()
+            elif choice == "3":
+                self._cancel_by_id()
+            elif choice == "0":
+                break
+            else:
+                print("无效选项")
+                self.wait_for_key()
+
     def run(self):
         """运行预约菜单（兼容UserController的调用方式）"""
         if self.__current_user is None:
