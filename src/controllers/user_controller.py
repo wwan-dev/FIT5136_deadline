@@ -200,7 +200,15 @@ class UserController:
             except Exception as e:
                 print(f"Error: {e}")
         elif mode == "report":
-            print("Reports module not implemented yet.")
+            try:
+                from src.controllers.report_controller import ReportController
+                return_to_main = ReportController(self._current_user).run()
+                if return_to_main:
+                    return  # 直接返回登录界面
+            except ModuleNotFoundError:
+                print("Reports module not ready.")
+            except Exception as e:
+                print(f"Error: {e}")
             input("Press Enter to continue...")
         else:
             print(f"Unknown admin module: {mode}")

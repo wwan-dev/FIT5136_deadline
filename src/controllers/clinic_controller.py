@@ -339,13 +339,9 @@ class ClinicController:
             self.wait_for_key()
             return
         
-        # 专业领域
-        specialisations = []
-        while True:
-            spec = input("专业领域 (回车结束添加): ").strip()
-            if not spec:
-                break
-            specialisations.append(spec)
+        # 专业领域 - 改为在一行输入，用分号分隔
+        spec_input = input("专业领域 (用分号';'分隔多个专业): ").strip()
+        specialisations = [spec.strip() for spec in spec_input.split(';') if spec.strip()]
         
         # 创建新医生
         new_doctor = Doctor(
@@ -449,33 +445,59 @@ class ClinicController:
                 return
                 
             if choice == "1":
-                new_spec = input("新专业领域: ").strip()
-                if new_spec:
+                # 添加专业领域，支持一次添加多个，用分号分隔
+                spec_input = input("专业领域 (用分号';'分隔多个专业): ").strip()
+                new_specs = [spec.strip() for spec in spec_input.split(';') if spec.strip()]
+                
+                # 添加每个专业领域
+                added_count = 0
+                for new_spec in new_specs:
                     doctor.add_specialisation(new_spec)
+                    added_count += 1
+                
+                if added_count > 0:
                     try:
                         self.__doctor_repo.update(doctor)
-                        print(f"已添加专业领域: {new_spec}")
+                        print(f"已添加 {added_count} 个专业领域")
                     except Exception as e:
                         print(f"更新失败: {str(e)}")
-                    self.wait_for_key()
+                else:
+                    print("未添加任何专业领域")
+                self.wait_for_key()
             elif choice == "2":
                 if not doctor.specialisation:
                     print("没有可删除的专业领域")
                     self.wait_for_key()
                     continue
                 
+                # 显示专业领域列表，带编号
+                print("\n当前专业领域:")
+                for i, spec in enumerate(doctor.specialisation, 1):
+                    print(f"{i}. {spec}")
+                
                 try:
-                    index = int(input("请输入要删除的专业领域编号: ").strip()) - 1
-                    if 0 <= index < len(doctor.specialisation):
-                        spec_to_remove = doctor.specialisation[index]
-                        doctor.remove_specialisation(spec_to_remove)
+                    # 支持删除多个专业领域，用逗号分隔索引
+                    index_input = input("\n请输入要删除的专业领域编号 (多个用逗号分隔): ").strip()
+                    indexes = [int(idx.strip()) for idx in index_input.split(',') if idx.strip().isdigit()]
+                    
+                    # 排序并反转，从后向前删除避免索引变化问题
+                    indexes.sort(reverse=True)
+                    removed_specs = []
+                    
+                    for idx in indexes:
+                        if 1 <= idx <= len(doctor.specialisation):
+                            spec_to_remove = doctor.specialisation[idx-1]
+                            doctor.remove_specialisation(spec_to_remove)
+                            removed_specs.append(spec_to_remove)
+                    
+                    if removed_specs:
                         try:
                             self.__doctor_repo.update(doctor)
-                            print(f"已删除专业领域: {spec_to_remove}")
+                            print(f"已删除专业领域: {', '.join(removed_specs)}")
                         except Exception as e:
                             print(f"更新失败: {str(e)}")
                     else:
-                        print("无效的编号")
+                        print("未删除任何专业领域")
                 except ValueError:
                     print("请输入有效的数字")
                 self.wait_for_key()
