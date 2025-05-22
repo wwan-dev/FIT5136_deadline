@@ -10,7 +10,7 @@ from typing import Optional, Dict, Any, Tuple, List
 
 from src.entities.user import User
 from src.services.appointment_service import AppointmentService
-
+from src.utils.date_util import DateUtil
 
 class AppointmentController:
     """预约控制器类 - 处理预约相关的用户界面和交互"""
@@ -24,7 +24,7 @@ class AppointmentController:
         self.__appointment_service = AppointmentService()
         self.__current_user = user
         self.__should_return_to_main = False  # 是否返回主菜单标志
-    
+        self.__DateUtil = DateUtil()
     def clear_screen(self):
         """清屏"""
         os.system('cls' if os.name == 'nt' else 'clear')
@@ -207,16 +207,13 @@ class AppointmentController:
         self.print_header("选择日期")
         
         today = self.__appointment_service.get_current_date()
-        
+
         if future_only:
-            # 获取未来7天的日期
             dates = self.__appointment_service.get_date_range(today, 7)
             print("未来7天的日期:")
         else:
-            # 获取过去7天和未来7天的日期
-            past_dates = self.__appointment_service.get_date_range(
-                self.__appointment_service.get_date_range(today, -7)[0], 7
-            )
+            start_past = self.__DateUtil.shift_date(today, -7)
+            past_dates = self.__appointment_service.get_date_range(start_past, 7)
             future_dates = self.__appointment_service.get_date_range(today, 7)
             dates = past_dates + future_dates
             print("可选日期(过去7天和未来7天):")

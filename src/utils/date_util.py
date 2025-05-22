@@ -204,6 +204,21 @@ class DateUtil:
         except ValueError:
             return []
 
+    @staticmethod
+    def shift_date(base_date: str, offset: int) -> str:
+        """获取偏移后的日期
+
+        Args:
+            base_date (str): 起始日期（YYYY-MM-DD）
+            offset (int): 偏移天数，负值为向前
+
+        Returns:
+            str: 偏移后的日期
+        """
+        base = datetime.strptime(base_date, "%Y-%m-%d")
+        new_date = base + timedelta(days=offset)
+        return new_date.strftime("%Y-%m-%d")
+
 
 # 测试代码
 if __name__ == "__main__":
