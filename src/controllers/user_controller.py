@@ -51,18 +51,21 @@ class UserController:
     def _patient_menu(self) -> None:
         while True:
             print("\n===== Patient Menu =====")
-            print("1. Manage Profile")         # ← 修改
+            print("1. Manage Profile")
             print("2. Manage Appointments")
-            print("0. Logout")
+            print("0. Logout  (上一层)")
+            print("-. Main Menu (主菜单)")
             choice = input("Select: ").strip()
 
             if choice == "1":
-                self._manage_profile()        # ← 新增
+                self._manage_profile()  # ← 子层
             elif choice == "2":
-                self._enter_appointment_menu()
-            elif choice == "0":
+                self._enter_appointment_menu()  # ← 子层
+            elif choice == "0":  # ← 登出 = 回到登录界面
                 print("Logged out.")
                 return
+            elif choice == "-":  # ← 已是主菜单；重刷界面
+                continue
             else:
                 print("Invalid choice.")
 
@@ -70,24 +73,26 @@ class UserController:
     def _admin_menu(self) -> None:
         while True:
             print("\n===== Admin Menu =====")
-            print("1. View Profile")
-            print("2. Clinic / GP Management")
-            print("3. Appointment Management")
-            print("4. Reports / Statistics")
-            print("0. Logout")
+
+            print("1. Clinic / GP Management")
+            print("2. Appointment Management")
+            print("3. Reports / Statistics")
+            print("0. Logout  (上一层)")
+            print("-. Main Menu (主菜单)")
             choice = input("Select: ").strip()
 
+
             if choice == "1":
-                self._show_profile()
-            elif choice == "2":
                 self._enter_admin_controller("clinic")
-            elif choice == "3":
+            elif choice == "2":
                 self._enter_admin_controller("appointment")
-            elif choice == "4":
+            elif choice == "3":
                 self._enter_admin_controller("report")
             elif choice == "0":
                 print("Logged out.")
                 return
+            elif choice == "-":
+                continue  # 已是主菜单；重刷
             else:
                 print("Invalid choice.")
 
