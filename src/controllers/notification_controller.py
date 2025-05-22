@@ -31,7 +31,11 @@ class NotificationController:
         os.system('cls' if os.name == 'nt' else 'clear')
     
     def print_header(self, title):
-        """Print title header"""
+        """Print title header
+        
+        Args:
+            title (str): The title to display
+        """
         self.clear_screen()
         print("=" * 50)
         print(f"{title.center(48)}")

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-报告控制器类 - 处理报告统计UI界面和交互
+Report Controller - Handles report and statistics UI and interactions
 """
 
 import os
@@ -14,25 +14,29 @@ from src.services.report_service import ReportService
 from src.repositories.clinic_repository import ClinicRepository
 
 class ReportController:
-    """报告控制器类"""
+    """Report Controller"""
     
     def __init__(self, user=None):
-        """初始化报告控制器
+        """Initialize report controller
         
         Args:
-            user (User, optional): 当前用户. Defaults to None.
+            user (User, optional): Current user. Defaults to None.
         """
         self.__report_svc = ReportService()
         self.__clinic_repo = ClinicRepository()
         self.__current_user = user
-        self.__should_return_to_main = False  # 是否返回主菜单标志
+        self.__should_return_to_main = False  # Flag to return to main menu
     
     def clear_screen(self):
-        """清屏"""
+        """Clear screen"""
         os.system('cls' if os.name == 'nt' else 'clear')
     
     def print_header(self, title):
-        """打印标题"""
+        """Print title header
+        
+        Args:
+            title (str): The title to display
+        """
         self.clear_screen()
         print("=" * 50)
         print(f"{title.center(48)}")
@@ -40,23 +44,24 @@ class ReportController:
         print()
     
     def wait_for_key(self):
-        """等待用户按键"""
-        input("\n按回车键继续...")
+        """Wait for user to press a key"""
+        input("\nPress Enter to continue...")
     
     def _select_date_range(self) -> tuple:
-        """选择日期范围
+        """Select date range
         
         Returns:
-            tuple: (日期范围类型, 开始日期, 结束日期)
+            tuple: (range_type, start_date, end_date) where range_type is one of 'day', 'week', 'month', 'custom'
+                  or (None, None, None) if canceled
         """
-        self.print_header("选择日期范围")
-        print("1. 今天")
-        print("2. 本周（过去7天）")
-        print("3. 本月（过去30天）")
-        print("4. 自定义范围")
-        print("0. 返回")
+        self.print_header("Select Date Range")
+        print("1. Today")
+        print("2. This Week (last 7 days)")
+        print("3. This Month (last 30 days)")
+        print("4. Custom Range")
+        print("0. Return")
         
-        choice = input("\n请选择: ").strip()
+        choice = input("\nSelect: ").strip()
         
         if choice == "0":
             return None, None, None
@@ -72,38 +77,38 @@ class ReportController:
         elif choice == "3":
             range_type = "month"
         elif choice == "4":
-            print("\n请输入自定义日期范围（格式：YYYY-MM-DD）")
-            start_date = input("开始日期: ").strip()
-            end_date = input("结束日期: ").strip()
+            print("\nEnter custom date range (format: YYYY-MM-DD)")
+            start_date = input("Start date: ").strip()
+            end_date = input("End date: ").strip()
             
-            # 验证日期格式
+            # Validate date format
             try:
                 datetime.strptime(start_date, "%Y-%m-%d")
                 datetime.strptime(end_date, "%Y-%m-%d")
                 range_type = "custom"
             except ValueError:
-                print("日期格式无效，请使用 YYYY-MM-DD 格式")
+                print("Invalid date format, please use YYYY-MM-DD format")
                 self.wait_for_key()
                 return self._select_date_range()
         else:
-            print("无效选择")
+            print("Invalid choice")
             self.wait_for_key()
             return self._select_date_range()
         
         return range_type, start_date, end_date
     
     def _select_export_format(self) -> str:
-        """选择导出格式
+        """Select export format
         
         Returns:
-            str: 导出格式，可选值：'csv', 'txt', None表示取消导出
+            str: Export format, possible values: 'csv', 'txt', None if export canceled
         """
-        print("\n请选择导出格式:")
-        print("1. CSV格式")
-        print("2. TXT格式")
-        print("0. 不导出")
+        print("\nSelect export format:")
+        print("1. CSV format")
+        print("2. TXT format")
+        print("0. Don't export")
         
-        choice = input("\n请选择: ").strip()
+        choice = input("\nSelect: ").strip()
         
         if choice == "0":
             return None
@@ -112,69 +117,69 @@ class ReportController:
         elif choice == "2":
             return "txt"
         else:
-            print("无效选择")
+            print("Invalid choice")
             return self._select_export_format()
     
     def _export_report(self, report_data: Any, report_type: str) -> None:
-        """导出报告
+        """Export report
         
         Args:
-            report_data (Any): 报告数据
-            report_type (str): 报告类型
+            report_data (Any): Report data
+            report_type (str): Report type
         """
         if not report_data:
-            print("没有可导出的报告数据")
+            print("No report data to export")
             return
         
         export_format = self._select_export_format()
         if not export_format:
             return
         
-        filename = input("\n请输入文件名（默认自动生成）: ").strip()
+        filename = input("\nEnter filename (default: auto-generated): ").strip()
         
         if export_format == "csv":
             file_path = self.__report_svc.export_report_to_csv(report_data, report_type, filename)
         else:
             file_path = self.__report_svc.export_report_to_txt(report_data, report_type, filename)
         
-        print(f"\n报告已导出到: {file_path}")
+        print(f"\nReport exported to: {file_path}")
     
     def show_doctor_report(self) -> None:
-        """显示医生接待人数报告"""
-        self.print_header("医生接待人数报告")
+        """Display doctor patient statistics report"""
+        self.print_header("Doctor Patient Statistics Report")
         
-        # 选择日期范围
+        # Select date range
         range_type, start_date, end_date = self._select_date_range()
         if not range_type:
             return
         
-        # 生成报告
+        # Generate report
         report_data = self.__report_svc.generate_doctor_report(range_type, start_date, end_date)
         
         if not report_data:
-            print("没有找到符合条件的数据")
+            print("No data found matching the criteria")
             self.wait_for_key()
             return
         
-        # 显示报告
-        self.print_header("医生接待人数统计报告")
+        # Display report
+        self.print_header("Doctor Patient Statistics Report")
         start, end = self.__report_svc._get_date_range(range_type, start_date, end_date)
-        print(f"日期范围: {start} 至 {end}")
-        print(f"总记录数: {len(report_data)}")
+        print(f"Date range: {start} to {end}")
+        print(f"Total records: {len(report_data)}")
         print()
         
-        print(f"{'医生ID':<8}{'医生姓名':<15}{'所在诊所区域':<20}{'接待人数':<10}{'就诊原因'}")
+        print(f"{'Doctor ID':<8}{'Doctor Name':<15}{'Clinic Suburbs':<20}{'Patient Count':<10}{'Appointment Reasons'}")
         print("-" * 80)
         
         for item in report_data:
             print(f"{item['doctor_id']:<8}{item['doctor_name']:<15}{item['clinic_suburbs']:<20}{item['appointment_count']:<10}{item['appointment_reasons']}")
         
-        # 导出选项
-        print("\n请选择操作:")
-        print("1. 导出报告")
-        print("0. 返回")
+        # Export options
+        print("\nSelect an option:")
+        print("1. Export Report")
+        print("0. Return")
         
-        choice = input("\n请选择: ").strip()
+        choice = input("\nSelect: ").strip()
         
         if choice == "1":
             self._export_report(report_data, "doctor")
@@ -182,133 +187,124 @@ class ReportController:
         self.wait_for_key()
     
     def show_clinic_report(self) -> None:
-        """显示诊所预约数据报告"""
-        self.print_header("诊所预约数据报告")
+        """Display clinic appointment data report"""
+        self.print_header("Clinic Appointment Data Report")
         
-        # 选择诊所
+        # Select clinic
         clinics = self.__clinic_repo.get_all()
         if not clinics:
-            print("系统中没有诊所数据")
+            print("No clinic data in the system")
             self.wait_for_key()
             return
         
-        print("请选择诊所:")
+        print("Select clinic:")
         for i, clinic in enumerate(clinics, 1):
             print(f"{i}. {clinic.name} ({clinic.suburb})")
-        print("0. 返回")
+        print("0. Return")
         
-        choice = input("\n请选择: ").strip()
+        choice = input("\nSelect: ").strip()
         
         if choice == "0":
             return
         
         try:
-            idx = int(choice) - 1
-            if 0 <= idx < len(clinics):
-                selected_clinic = clinics[idx]
-            else:
-                print("无效选择")
+            clinic_idx = int(choice) - 1
+            if clinic_idx < 0 or clinic_idx >= len(clinics):
+                raise ValueError("Invalid index")
+            
+            selected_clinic = clinics[clinic_idx]
+            
+            # Select date range
+            range_type, start_date, end_date = self._select_date_range()
+            if not range_type:
+                return
+            
+            # Generate report
+            report_data = self.__report_svc.generate_clinic_report(selected_clinic.id, range_type, start_date, end_date)
+            
+            if not report_data:
+                print("No data found matching the criteria")
                 self.wait_for_key()
                 return
-        except ValueError:
-            print("请输入有效的数字")
-            self.wait_for_key()
-            return
-        
-        # 选择日期范围
-        range_type, start_date, end_date = self._select_date_range()
-        if not range_type:
-            return
-        
-        # 生成报告
-        report_data = self.__report_svc.generate_clinic_report(selected_clinic.id, range_type, start_date, end_date)
-        
-        if "error" in report_data:
-            print(f"错误: {report_data['error']}")
-            self.wait_for_key()
-            return
-        
-        # 显示报告
-        self.print_header("诊所预约数据统计报告")
-        print(f"诊所: {report_data['clinic_name']}")
-        print(f"日期范围: {report_data['date_range']}")
-        print(f"总预约数: {report_data['total_appointments']}")
-        
-        # 医生预约统计
-        print("\n医生预约统计:")
-        print("-" * 50)
-        print(f"{'医生ID':<8}{'医生姓名':<15}{'预约数量'}")
-        print("-" * 50)
-        
-        for doctor in report_data['doctor_stats']:
-            print(f"{doctor['doctor_id']:<8}{doctor['doctor_name']:<15}{doctor['appointment_count']}")
-        
-        # 就诊原因统计
-        print("\n就诊原因统计:")
-        print("-" * 50)
-        print(f"{'就诊原因':<30}{'数量'}")
-        print("-" * 50)
-        
-        for reason in report_data['reason_stats']:
-            print(f"{reason['reason']:<30}{reason['count']}")
-        
-        # 高峰时间分析
-        print("\n高峰时间分析:")
-        print("-" * 50)
-        print(f"{'时间段':<20}{'预约数量'}")
-        print("-" * 50)
-        
-        for peak in report_data['peak_times']:
-            print(f"{peak['time_display']:<20}{peak['count']}")
-        
-        # 导出选项
-        print("\n请选择操作:")
-        print("1. 导出报告")
-        print("0. 返回")
-        
-        choice = input("\n请选择: ").strip()
-        
-        if choice == "1":
-            self._export_report(report_data, "clinic")
+            
+            # Display report
+            self.print_header(f"Clinic Report: {selected_clinic.name}")
+            start, end = self.__report_svc._get_date_range(range_type, start_date, end_date)
+            print(f"Date range: {start} to {end}")
+            print(f"Total appointments: {report_data['total_appointments']}")
+            print()
+            
+            # Peak time analysis
+            print("Appointment Distribution by Hour:")
+            max_count = max(report_data['hour_distribution'].values()) if report_data['hour_distribution'] else 0
+            
+            for hour in sorted(report_data['hour_distribution'].keys()):
+                count = report_data['hour_distribution'][hour]
+                bar_length = int((count / max_count) * 20) if max_count > 0 else 0
+                is_peak = hour in report_data['peak_hours']
+                hour_display = f"{hour}:00-{hour+1}:00"
+                peak_marker = " (PEAK)" if is_peak else ""
+                
+                print(f"{hour_display:<10} {count:>3} {'█' * bar_length}{peak_marker}")
+            
+            print("\nDoctor Appointment Distribution:")
+            for doctor_id, count in report_data['doctor_distribution'].items():
+                doctor = self.__report_svc.get_doctor_name(doctor_id)
+                print(f"{doctor:<20}: {count} appointments")
+            
+            # Export options
+            print("\nSelect an option:")
+            print("1. Export Report")
+            print("0. Return")
+            
+            choice = input("\nSelect: ").strip()
+            
+            if choice == "1":
+                self._export_report(report_data, "clinic")
+            
+        except (ValueError, IndexError):
+            print("Invalid selection")
         
         self.wait_for_key()
     
     def show_appointment_type_report(self) -> None:
-        """显示预约类型分布报告"""
-        self.print_header("预约类型分布报告")
+        """Display appointment type distribution report"""
+        self.print_header("Appointment Type Distribution Report")
         
-        # 选择日期范围
+        # Select date range
         range_type, start_date, end_date = self._select_date_range()
         if not range_type:
             return
         
-        # 生成报告
+        # Generate report
         report_data = self.__report_svc.generate_appointment_type_report(range_type, start_date, end_date)
         
-        # 显示报告
-        self.print_header("预约类型分布统计报告")
-        print(f"日期范围: {report_data['date_range']}")
-        print(f"总预约数: {report_data['total_appointments']}")
-        
-        if report_data['total_appointments'] == 0:
-            print("\n所选时间范围内没有预约数据")
+        if not report_data:
+            print("No data found matching the criteria")
             self.wait_for_key()
             return
         
-        print("\n预约类型分布:")
-        print("-" * 70)
-        print(f"{'预约原因':<40}{'数量':<10}{'百分比'}")
-        print("-" * 70)
+        # Display report
+        self.print_header("Appointment Type Distribution Report")
+        start, end = self.__report_svc._get_date_range(range_type, start_date, end_date)
+        print(f"Date range: {start} to {end}")
+        print(f"Total appointments: {sum(report_data.values())}")
+        print()
         
-        for type_stat in report_data['type_stats']:
-            print(f"{type_stat['reason']:<40}{type_stat['count']:<10}{type_stat['percentage']}%")
+        max_count = max(report_data.values()) if report_data else 0
         
-        # 导出选项
-        print("\n请选择操作:")
-        print("1. 导出报告")
-        print("0. 返回")
+        for reason, count in sorted(report_data.items(), key=lambda x: x[1], reverse=True):
+            bar_length = int((count / max_count) * 30) if max_count > 0 else 0
+            percentage = (count / sum(report_data.values())) * 100 if sum(report_data.values()) > 0 else 0
+            
+            print(f"{reason:<20} {count:>4} ({percentage:.1f}%) {'█' * bar_length}")
         
-        choice = input("\n请选择: ").strip()
+        # Export options
+        print("\nSelect an option:")
+        print("1. Export Report")
+        print("0. Return")
+        
+        choice = input("\nSelect: ").strip()
         
         if choice == "1":
             self._export_report(report_data, "appointment_type")
@@ -316,26 +312,26 @@ class ReportController:
         self.wait_for_key()
     
     def run(self) -> bool:
-        """运行报告统计菜单
+        """Run report menu
         
         Returns:
-            bool: 是否返回主菜单
+            bool: Flag indicating whether to return to main menu
         """
-        self.__should_return_to_main = False  # 重置返回主菜单标志
+        self.__should_return_to_main = False  # Reset return to main menu flag
         
         while True:
             if self.__should_return_to_main:
                 break
                 
-            self.print_header("统计报告管理")
+            self.print_header("Reports and Statistics")
             
-            print("1. 医生接待人数报告")
-            print("2. 诊所预约数据报告")
-            print("3. 预约类型分布报告")
-            print("0. 返回上一级")
-            print("-. 返回主菜单")
+            print("1. Doctor Patient Statistics")
+            print("2. Clinic Appointment Data")
+            print("3. Appointment Type Distribution")
+            print("0. Return")
+            print("-. Back to Main Menu")
             
-            choice = input("\n请选择操作: ").strip()
+            choice = input("\nSelect: ").strip()
             
             if choice == "1":
                 self.show_doctor_report()
@@ -349,7 +345,7 @@ class ReportController:
                 self.__should_return_to_main = True
                 break
             else:
-                print("无效选项")
+                print("Invalid option")
                 self.wait_for_key()
         
-        return self.__should_return_to_main 
+        return self.__should_return_to_main  # Return flag, for caller to determine if returning to main menu 

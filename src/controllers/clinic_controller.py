@@ -33,7 +33,11 @@ class ClinicController:
         os.system('cls' if os.name == 'nt' else 'clear')
     
     def print_header(self, title):
-        """Print title header"""
+        """Print title header
+        
+        Args:
+            title (str): The title to display
+        """
         self.clear_screen()
         print("=" * 50)
         print(f"{title.center(48)}")
@@ -423,7 +427,11 @@ class ClinicController:
         self.wait_for_key()
     
     def manage_doctor_specialisations(self, doctor: Doctor) -> None:
-        """Manage doctor specialisation"""
+        """Manage doctor specialisation
+        
+        Args:
+            doctor (Doctor): The doctor whose specialisations are being managed
+        """
         while True:
             self.print_header(f"Manage Doctor {doctor.full_name} Specialisation")
             
@@ -594,7 +602,11 @@ class ClinicController:
             self.wait_for_key()
     
     def add_clinic_to_doctor(self, doctor: Doctor) -> None:
-        """Add clinic association to doctor"""
+        """Add clinic association to doctor
+        
+        Args:
+            doctor (Doctor): The doctor to add clinic association to
+        """
         self.print_header(f"Add Clinic to Doctor {doctor.full_name}")
         
         # Display all clinics
@@ -652,7 +664,11 @@ class ClinicController:
         self.wait_for_key()
     
     def remove_clinic_from_doctor(self, doctor: Doctor) -> None:
-        """Remove clinic association from doctor"""
+        """Remove clinic association from doctor
+        
+        Args:
+            doctor (Doctor): The doctor to remove clinic association from
+        """
         self.print_header(f"Remove Clinic from Doctor {doctor.full_name}")
         
         if not doctor.assigned_clinics:
@@ -730,7 +746,11 @@ class ClinicController:
     
     # ================ Main Menu ================
     def run(self) -> None:
-        """Run clinic and doctor management menu"""
+        """Run clinic and doctor management menu
+        
+        Returns:
+            bool: Flag indicating whether to return to main menu
+        """
         self.__should_return_to_main = False  # Reset return to main menu flag
         
         while True:

@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 
 """
-user_controller.py
-==================
-• 登录
-• 根据角色跳转到 Patient / Admin 主菜单
-• 本文件只做菜单路由，具体业务分别交给 AppointmentController / AdminController
+User Controller
+==============
+• Login
+• Route to Patient/Admin menu based on role
+• This file only handles menu routing, specific business logic is delegated to AppointmentController/AdminController
 """
 
 from __future__ import annotations
@@ -18,14 +18,15 @@ from src.entities.user import User
 
 
 class UserController:
-    """顶层用户交互控制器"""
+    """Top-level user interaction controller"""
 
     def __init__(self):
         self._svc = UserService()
         self._current_user: Optional[User] = None
 
-    # ───────────────────────── 登录流程 ─────────────────────────
+    # ───────────────────────── Login Process ─────────────────────────
     def run(self) -> None:
+        """Main application entry point"""
         while True:
             print("\n===== MPMS Login =====")
             email = input("Email (q to quit): ").strip()
@@ -42,15 +43,16 @@ class UserController:
                     self._admin_menu()
                 else:
                     self._patient_menu()
-                # 菜单返回即登出
+                # Logout when menu returns
                 self._current_user = None
             else:
                 print()
 
-    # --------------- 患者菜单 ---------------
+    # --------------- Patient Menu ---------------
     def _patient_menu(self) -> None:
+        """Display and handle patient menu options"""
         while True:
-            # 检查未读通知数量
+            # Check unread notification count
             unread_count = 0
             try:
                 from src.controllers.notification_controller import NotificationController
@@ -67,21 +69,22 @@ class UserController:
             choice = input("Select: ").strip()
 
             if choice == "1":
-                self._manage_profile()  # ← 子层
+                self._manage_profile()  # Sub-menu
             elif choice == "2":
-                self._enter_appointment_menu()  # ← 子层
+                self._enter_appointment_menu()  # Sub-menu
             elif choice == "3":
-                self._enter_notification_menu()  # ← 子层
-            elif choice == "0":  # ← 登出 = 回到登录界面
+                self._enter_notification_menu()  # Sub-menu
+            elif choice == "0":  # Logout = return to login screen
                 print("Logged out.")
                 return
-            elif choice == "-":  # ← 已是主菜单；重刷界面
+            elif choice == "-":  # Already in main menu; refresh screen
                 continue
             else:
                 print("Invalid choice.")
 
-    # ─────────────────────── 管理员菜单 ───────────────────────
+    # ─────────────────────── Admin Menu ───────────────────────
     def _admin_menu(self) -> None:
+        """Display and handle admin menu options"""
         while True:
             print("\n===== Admin Menu =====")
             print(f"Current user: {self._current_user.name}, Role: {self._current_user.role}")
@@ -97,12 +100,12 @@ class UserController:
                 self._enter_admin_controller("clinic")
 
             elif choice == "2":
-                # 直接进入预约管理子菜单（全局权限）
+                # Enter appointment management submenu (with global privileges)
                 try:
                     from src.controllers.appointment_controller import AppointmentController
                     return_to_main = AppointmentController().run_admin_menu()
                     if return_to_main:
-                        return  # 直接返回登录界面
+                        return  # Return directly to login screen
                 except ModuleNotFoundError:
                     print("Appointment module not ready.")
                 except Exception as e:
@@ -113,19 +116,19 @@ class UserController:
 
             elif choice == "0":
                 print("Logged out.")
-                return  # 回到登录界面
+                return  # Return to login screen
 
             elif choice == "-":
-                continue  # 已在主菜单；刷新
+                continue  # Already in main menu; refresh
 
             else:
                 print("Invalid choice.")
 
-    # ───────────────────────── 通用功能 ─────────────────────────
-    # --------------- Profile 管理功能 ---------------
+    # ───────────────────────── Common Functions ─────────────────────────
+    # --------------- Profile Management ---------------
     def _manage_profile(self) -> None:
         """
-        显示资料 → 选择字段 → 更新 → 保存
+        Display profile -> Select field -> Update -> Save
         """
         while True:
             profile = self._svc.get_profile(self._current_user)
@@ -163,6 +166,7 @@ class UserController:
                 print("Update failed (field not editable).")
 
     def _enter_appointment_menu(self) -> None:
+        """Enter appointment management menu"""
         try:
             from src.controllers.appointment_controller import AppointmentController
             AppointmentController(self._current_user).run()
@@ -172,12 +176,12 @@ class UserController:
             print(f"Error: {e}")
     
     def _enter_notification_menu(self) -> None:
-        """进入通知管理菜单"""
+        """Enter notification management menu"""
         try:
             from src.controllers.notification_controller import NotificationController
             return_to_main = NotificationController(self._current_user).run()
             if return_to_main:
-                return  # 返回到登录界面
+                return  # Return to login screen
         except ModuleNotFoundError:
             print("Notification module not ready.")
             input("Press Enter to continue...")
@@ -187,15 +191,17 @@ class UserController:
 
     def _enter_admin_controller(self, mode: str) -> None:
         """
-        根据 mode 跳转到相应管理员子模块
-        mode ∈ {"clinic", "appointment", "report"}
+        Navigate to appropriate admin submodule based on mode
+        
+        Args:
+            mode (str): The mode to enter, one of: "clinic", "appointment", "report"
         """
         if mode == "clinic":
             try:
                 from src.controllers.clinic_controller import ClinicController
                 return_to_main = ClinicController(self._current_user).run()
                 if return_to_main:
-                    return  # 直接返回登录界面
+                    return  # Return directly to login screen
             except ModuleNotFoundError:
                 print("Clinic management module not ready.")
             except Exception as e:
@@ -205,7 +211,7 @@ class UserController:
                 from src.controllers.report_controller import ReportController
                 return_to_main = ReportController(self._current_user).run()
                 if return_to_main:
-                    return  # 直接返回登录界面
+                    return  # Return directly to login screen
             except ModuleNotFoundError:
                 print("Reports module not ready.")
             except Exception as e:
