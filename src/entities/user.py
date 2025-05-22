@@ -242,6 +242,7 @@ class User:
         Returns:
             dict: Dictionary representation of user
         """
+        # 基础字段，所有用户都具有的
         data = {
             "id": self.__id,
             "email": self.__email,
@@ -249,16 +250,14 @@ class User:
             "role": self.__role,
             "name": self.__name,
             "phone": self.__phone,
-            "address": self.__address
+            "address": self.__address,
+            "date_of_birth": self.__date_of_birth,
+            "gender": self.__gender,
+            "medical_history": self.__medical_history
         }
         
-        # Only add patient-specific fields if user is a patient
-        if self.is_patient():
-            data.update({
-                "date_of_birth": self.__date_of_birth,
-                "gender": self.__gender,
-                "medical_history": self.__medical_history
-            })
+        # 移除所有None值字段
+        data = {k: v for k, v in data.items() if v is not None}
             
         return data
     

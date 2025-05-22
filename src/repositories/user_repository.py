@@ -79,8 +79,20 @@ class UserRepository(BaseRepository[User]):
         """
         from src.utils.file_util import FileUtil
 
+        # 读取当前CSV文件以获取可用的字段名
+        existing_data = FileUtil.read_csv(self.data_file)
+        if not existing_data:
+            return False
+        
+        # 获取当前CSV文件的字段名
+        available_fields = existing_data[0].keys()
+        
+        # 只保留CSV文件中存在的字段
+        user_dict = user.to_dict()
+        update_data = {k: v for k, v in user_dict.items() if k in available_fields}
+        
         return FileUtil.update_row(
-            self.data_file,                     # BaseRepository 已持有
+            self.data_file,
             lambda row: row.get("id") == str(user.id),
-            user.to_dict()
+            update_data
         )

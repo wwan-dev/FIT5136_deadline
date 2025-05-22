@@ -1,6 +1,6 @@
-id,email,password,role,name,phone,address,
-1,patient1@student.monash.edu,Monash1234!,patient,张三,0412345678,123 Main St,[' Clayton VIC 3168']
-2,patient2@student.monash.edu,Monash1234!,patient,李四,0423456789,456 High St,[' Caulfield VIC 3162']
-3,admin@monash.edu,Admin1234!,admin,管理员,0498765432,Monash University,[' Clayton VIC 3168 ']
-4,1,1,patient,Nick,0423456789,456 High St,[' Caulfield VIC 3162']
-5,2,2,admin,fox,0423456789,456 High St,[' Caulfield VIC 3162']
+id,email,password,role,name,phone,address,date_of_birth,gender,medical_history
+1,patient1@student.monash.edu,Monash1234!,patient,张三,0412345678,123 Main St,,,
+2,patient2@student.monash.edu,Monash1234!,patient,李四,0423456789,456 High St,,,
+3,admin@monash.edu,Admin1234!,admin,管理员,0498765432,Monash University,,,
+4,1,1,patient,Wang,0423456789,456 High St,,,
+5,2,2,admin,fox,0423456789,456 High St,,,
