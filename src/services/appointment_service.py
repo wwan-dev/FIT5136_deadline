@@ -250,7 +250,27 @@ class AppointmentService:
             
         Raises:
             ValueError: If time slot is not available
+            ValueError: If appointment time is too soon (less than 2 hours in advance)
+            ValueError: If user has another appointment at the same time
         """
+        # Check if appointment is at least 2 hours in the future
+        appointment_datetime = DateUtil.datetime_from_date_and_slot(date, time_slot)
+        current_datetime = DateUtil.get_current_datetime()
+        time_difference = appointment_datetime - current_datetime
+        
+        # Convert time difference to hours
+        hours_difference = time_difference.total_seconds() / 3600
+        
+        # Check if appointment is at least 2 hours in the future
+        if hours_difference < 2:
+            raise ValueError("Appointments must be scheduled at least 2 hours in advance")
+            
+        # Check if user already has an appointment at the same time
+        user_appointments = self.__appointment_repo.get_by_user(user_id)
+        for existing_appointment in user_appointments:
+            if existing_appointment.date == date and existing_appointment.time_slot == time_slot and existing_appointment.is_scheduled():
+                raise ValueError("You already have another appointment scheduled at this time")
+        
         # Create appointment record
         appointment = Appointment(
             user_id=user_id,
