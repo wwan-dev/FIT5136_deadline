@@ -2,324 +2,238 @@
 # -*- coding: utf-8 -*-
 
 """
-日期和时间槽工具类，提供日期处理和时间槽转换功能
+日期工具类，提供日期和时间槽相关的操作
 """
 
-import sys
-import os
-import datetime
-
-# 添加项目根目录到Python路径
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-
-from src.config import TIME_SLOTS, HEX_TIME_SLOTS, MORNING_SLOTS, AFTERNOON_SLOTS, ALL_DAY_SLOTS, NO_SLOTS
+from datetime import datetime, timedelta
+from typing import List, Dict, Tuple
 
 class DateUtil:
-    """日期和时间槽工具类"""
+    """日期工具类，提供日期和时间槽相关的操作"""
     
-    # 日期格式常量
-    DATE_FORMAT = "%Y-%m-%d"
-    DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+    # 时间槽映射，每个时间槽对应半小时
+    TIME_SLOT_MAP = {
+        1: "9:00 AM - 9:30 AM",
+        2: "9:30 AM - 10:00 AM",
+        3: "10:00 AM - 10:30 AM",
+        4: "10:30 AM - 11:00 AM",
+        5: "11:00 AM - 11:30 AM",
+        6: "11:30 AM - 12:00 PM",
+        7: "12:00 PM - 12:30 PM",
+        8: "12:30 PM - 1:00 PM",
+        9: "1:00 PM - 1:30 PM",
+        10: "1:30 PM - 2:00 PM",
+        11: "2:00 PM - 2:30 PM",
+        12: "2:30 PM - 3:00 PM",
+        13: "3:00 PM - 3:30 PM",
+        14: "3:30 PM - 4:00 PM",
+        15: "4:00 PM - 4:30 PM",
+        16: "4:30 PM - 5:00 PM"
+    }
     
     @staticmethod
-    def get_current_date():
+    def get_time_slot_str(time_slot: int) -> str:
+        """获取时间槽的字符串表示
+        
+        Args:
+            time_slot (int): 时间槽索引（1-16）
+            
+        Returns:
+            str: 时间槽的字符串表示
+        """
+        if time_slot in DateUtil.TIME_SLOT_MAP:
+            return DateUtil.TIME_SLOT_MAP[time_slot]
+        return "Unknown Time Slot"
+    
+    @staticmethod
+    def get_time_slot_from_str(time_str: str) -> int:
+        """从字符串获取时间槽索引
+        
+        Args:
+            time_str (str): 时间字符串
+            
+        Returns:
+            int: 时间槽索引（1-16），如果不匹配则返回0
+        """
+        for slot, slot_str in DateUtil.TIME_SLOT_MAP.items():
+            if slot_str == time_str:
+                return slot
+        return 0
+    
+    @staticmethod
+    def get_current_date() -> str:
         """获取当前日期
         
         Returns:
-            str: 当前日期字符串，格式为 "YYYY-MM-DD"
+            str: 当前日期，格式为 "YYYY-MM-DD"
         """
-        return datetime.datetime.now().strftime(DateUtil.DATE_FORMAT)
+        return datetime.now().strftime("%Y-%m-%d")
     
     @staticmethod
-    def get_current_datetime():
-        """获取当前日期时间
-        
-        Returns:
-            str: 当前日期时间字符串，格式为 "YYYY-MM-DD HH:MM:SS"
-        """
-        return datetime.datetime.now().strftime(DateUtil.DATETIME_FORMAT)
-    
-    @staticmethod
-    def parse_date(date_str):
-        """解析日期字符串
+    def get_date_range(start_date: str, days: int) -> List[str]:
+        """获取日期范围
         
         Args:
-            date_str (str): 日期字符串，格式为 "YYYY-MM-DD"
+            start_date (str): 开始日期，格式为 "YYYY-MM-DD"
+            days (int): 天数
             
         Returns:
-            datetime.datetime: 日期对象
+            List[str]: 日期列表
         """
-        return datetime.datetime.strptime(date_str, DateUtil.DATE_FORMAT)
+        start = datetime.strptime(start_date, "%Y-%m-%d")
+        date_list = []
+        
+        for i in range(days):
+            date = start + timedelta(days=i)
+            date_list.append(date.strftime("%Y-%m-%d"))
+        
+        return date_list
     
     @staticmethod
-    def format_date(date_obj):
-        """格式化日期对象
+    def is_future_date(date_str: str) -> bool:
+        """判断日期是否是未来日期
         
         Args:
-            date_obj (datetime.datetime): 日期对象
-            
-        Returns:
-            str: 日期字符串，格式为 "YYYY-MM-DD"
-        """
-        return date_obj.strftime(DateUtil.DATE_FORMAT)
-    
-    @staticmethod
-    def add_days(date_str, days):
-        """日期加上指定天数
-        
-        Args:
-            date_str (str): 日期字符串，格式为 "YYYY-MM-DD"
-            days (int): 要加上的天数
-            
-        Returns:
-            str: 新的日期字符串，格式为 "YYYY-MM-DD"
-        """
-        date_obj = DateUtil.parse_date(date_str)
-        new_date = date_obj + datetime.timedelta(days=days)
-        return DateUtil.format_date(new_date)
-    
-    @staticmethod
-    def days_between(date1_str, date2_str):
-        """计算两个日期之间的天数
-        
-        Args:
-            date1_str (str): 第一个日期字符串，格式为 "YYYY-MM-DD"
-            date2_str (str): 第二个日期字符串，格式为 "YYYY-MM-DD"
-            
-        Returns:
-            int: 两个日期之间的天数
-        """
-        date1 = DateUtil.parse_date(date1_str)
-        date2 = DateUtil.parse_date(date2_str)
-        delta = date2 - date1
-        return abs(delta.days)
-    
-    @staticmethod
-    def is_future_date(date_str):
-        """检查日期是否是未来日期
-        
-        Args:
-            date_str (str): 日期字符串，格式为 "YYYY-MM-DD"
+            date_str (str): 日期，格式为 "YYYY-MM-DD"
             
         Returns:
             bool: 如果是未来日期返回True，否则返回False
         """
-        date_obj = DateUtil.parse_date(date_str)
-        today = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-        return date_obj > today
+        try:
+            date = datetime.strptime(date_str, "%Y-%m-%d").date()
+            today = datetime.now().date()
+            return date > today
+        except ValueError:
+            return False
     
     @staticmethod
-    def is_valid_appointment_date(date_str):
-        """检查日期是否是有效的预约日期（至少是当前日期之后的2小时）
+    def is_valid_date(date_str: str) -> bool:
+        """判断日期是否有效
         
         Args:
-            date_str (str): 日期字符串，格式为 "YYYY-MM-DD"
+            date_str (str): 日期，格式为 "YYYY-MM-DD"
             
         Returns:
-            bool: 如果是有效的预约日期返回True，否则返回False
+            bool: 如果日期有效返回True，否则返回False
         """
-        date_obj = DateUtil.parse_date(date_str)
-        now = datetime.datetime.now()
-        min_appointment_time = now + datetime.timedelta(hours=2)
-        return date_obj.date() > now.date() or (date_obj.date() == now.date() and min_appointment_time.time() <= now.time())
+        try:
+            datetime.strptime(date_str, "%Y-%m-%d")
+            return True
+        except ValueError:
+            return False
     
     @staticmethod
-    def get_weekday(date_str):
-        """获取日期的星期几
+    def format_date(date_str: str, input_format: str = "%Y-%m-%d", output_format: str = "%d/%m/%Y") -> str:
+        """格式化日期
         
         Args:
-            date_str (str): 日期字符串，格式为 "YYYY-MM-DD"
+            date_str (str): 日期字符串
+            input_format (str, optional): 输入格式. 默认为 "%Y-%m-%d".
+            output_format (str, optional): 输出格式. 默认为 "%d/%m/%Y".
             
         Returns:
-            int: 星期几（0-6，0表示星期一）
+            str: 格式化后的日期字符串
         """
-        date_obj = DateUtil.parse_date(date_str)
-        return date_obj.weekday()
+        try:
+            date = datetime.strptime(date_str, input_format)
+            return date.strftime(output_format)
+        except ValueError:
+            return date_str
     
     @staticmethod
-    def get_weekday_name(date_str):
-        """获取日期的星期几名称
+    def get_day_of_week(date_str: str) -> str:
+        """获取星期几
         
         Args:
-            date_str (str): 日期字符串，格式为 "YYYY-MM-DD"
+            date_str (str): 日期，格式为 "YYYY-MM-DD"
             
         Returns:
-            str: 星期几的名称
+            str: 星期几
         """
-        weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-        weekday = DateUtil.get_weekday(date_str)
-        return weekdays[weekday]
-    
-    # 以下是从TimeSlotUtils移植过来的方法
-    
-    @staticmethod
-    def get_time_range(slot_index):
-        """获取时间槽对应的具体时间范围
-        
-        Args:
-            slot_index (int): 时间槽索引（0-15）
-            
-        Returns:
-            str: 时间范围字符串，如 "09:00-09:30"
-        """
-        if slot_index < 0 or slot_index > 15:
-            raise ValueError("时间槽索引必须在0-15之间")
-        
-        return TIME_SLOTS[slot_index]
+        try:
+            date = datetime.strptime(date_str, "%Y-%m-%d")
+            days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+            return days[date.weekday()]
+        except ValueError:
+            return "Unknown"
     
     @staticmethod
-    def get_hex_mask(slot_index):
-        """获取时间槽对应的16进制掩码
+    def time_slots_to_hex(time_slots: List[int]) -> str:
+        """将时间槽列表转换为16进制字符串
         
         Args:
-            slot_index (int): 时间槽索引（0-15）
+            time_slots (List[int]): 时间槽索引列表（1-16）
             
         Returns:
-            int: 16进制掩码值
+            str: 16进制字符串
         """
-        if slot_index < 0 or slot_index > 15:
-            raise ValueError("时间槽索引必须在0-15之间")
+        if not time_slots:
+            return "0"
         
-        return HEX_TIME_SLOTS[slot_index]
+        value = 0
+        for slot in time_slots:
+            if 1 <= slot <= 16:
+                # 由于时间槽是1-16，而位是0-15，需要减1
+                value |= (1 << (slot - 1))
+        
+        return format(value, 'x')
     
     @staticmethod
-    def is_slot_available(hex_slots, slot_index):
-        """检查指定的时间槽是否可用
+    def hex_to_time_slots(hex_str: str) -> List[int]:
+        """将16进制字符串转换为时间槽列表
         
         Args:
-            hex_slots (int): 16进制表示的时间槽
-            slot_index (int): 要检查的时间槽索引（0-15）
+            hex_str (str): 16进制字符串
             
         Returns:
-            bool: 如果时间槽可用返回True，否则返回False
+            List[int]: 时间槽索引列表（1-16）
         """
-        mask = DateUtil.get_hex_mask(slot_index)
-        return (int(hex_slots, 16) & mask) != 0
-    
-    @staticmethod
-    def get_available_slots(hex_slots):
-        """获取所有可用的时间槽索引列表
+        if not hex_str or hex_str == "0":
+            return []
         
-        Args:
-            hex_slots (int): 16进制表示的时间槽
+        try:
+            value = int(hex_str, 16)
+            slots = []
             
-        Returns:
-            list: 可用时间槽索引列表
-        """
-        available_slots = []
-        hex_value = int(hex_slots, 16)
-        
-        for i in range(16):
-            mask = DateUtil.get_hex_mask(i)
-            if (hex_value & mask) != 0:
-                available_slots.append(i)
-                
-        return available_slots
-    
-    @staticmethod
-    def get_available_time_ranges(hex_slots):
-        """获取所有可用的时间范围列表
-        
-        Args:
-            hex_slots (int): 16进制表示的时间槽
+            for i in range(16):
+                if value & (1 << i):
+                    # 由于位是0-15，而时间槽是1-16，需要加1
+                    slots.append(i + 1)
             
-        Returns:
-            list: 可用时间范围字符串列表
-        """
-        available_slots = DateUtil.get_available_slots(hex_slots)
-        return [TIME_SLOTS[slot] for slot in available_slots]
-    
-    @staticmethod
-    def reserve_slot(hex_slots, slot_index):
-        """预约指定的时间槽（将对应位置为0）
-        
-        Args:
-            hex_slots (str): 16进制表示的时间槽
-            slot_index (int): 要预约的时间槽索引（0-15）
-            
-        Returns:
-            str: 更新后的16进制时间槽
-        """
-        mask = ~DateUtil.get_hex_mask(slot_index)
-        new_slots = int(hex_slots, 16) & mask
-        return hex(new_slots)[2:].zfill(4)  # 确保输出是4位长度的16进制字符串
-    
-    @staticmethod
-    def release_slot(hex_slots, slot_index):
-        """释放指定的时间槽（将对应位置为1）
-        
-        Args:
-            hex_slots (str): 16进制表示的时间槽
-            slot_index (int): 要释放的时间槽索引（0-15）
-            
-        Returns:
-            str: 更新后的16进制时间槽
-        """
-        mask = DateUtil.get_hex_mask(slot_index)
-        new_slots = int(hex_slots, 16) | mask
-        return hex(new_slots)[2:].zfill(4)  # 确保输出是4位长度的16进制字符串
-    
-    @staticmethod
-    def check_slot_conflict(doctor_schedules, doctor_id, date, slot_index):
-        """检查医生在指定日期和时间槽是否有冲突预约
-        
-        Args:
-            doctor_schedules (list): 医生排班记录列表
-            doctor_id (int): 医生ID
-            date (str): 日期字符串，格式为 "YYYY-MM-DD"
-            slot_index (int): 时间槽索引（0-15）
-            
-        Returns:
-            bool: 如果有冲突返回True，否则返回False
-        """
-        for schedule in doctor_schedules:
-            if schedule['doctor_id'] == doctor_id and schedule['date'] == date:
-                # 检查该医生在这个日期的所有诊所排班
-                if DateUtil.is_slot_available(schedule['time_slots'], slot_index):
-                    # 该医生在此时间槽已有排班
-                    return True
-        
-        return False
+            return slots
+        except ValueError:
+            return []
 
 
 # 测试代码
 if __name__ == "__main__":
     # 日期相关功能测试
     print("当前日期:", DateUtil.get_current_date())
-    print("当前日期时间:", DateUtil.get_current_datetime())
     
     today = DateUtil.get_current_date()
-    tomorrow = DateUtil.add_days(today, 1)
+    tomorrow = DateUtil.get_date_range(today, 1)[1]
     print(f"明天: {tomorrow}")
     
-    days = DateUtil.days_between(today, tomorrow)
-    print(f"{today} 和 {tomorrow} 之间相差 {days} 天")
-    
     print(f"{tomorrow} 是否是未来日期: {DateUtil.is_future_date(tomorrow)}")
-    print(f"{tomorrow} 是星期几: {DateUtil.get_weekday_name(tomorrow)}")
+    print(f"{tomorrow} 是星期几: {DateUtil.get_day_of_week(tomorrow)}")
     
     # 时间槽相关功能测试
-    print("\n时间槽与16进制掩码对应关系：")
-    for i in range(16):
-        time_range = DateUtil.get_time_range(i)
-        hex_mask = hex(DateUtil.get_hex_mask(i))
-        print(f"槽位 {i}: {time_range} -> 掩码: {hex_mask}")
+    print("\n时间槽与字符串对应关系：")
+    for i in range(1, 17):
+        time_slot_str = DateUtil.get_time_slot_str(i)
+        print(f"槽位 {i}: {time_slot_str}")
     
-    # 示例：检查某个16进制数中哪些时间槽可用
-    test_slots = "0xF0F0"
-    print(f"\n时间槽 {test_slots} 中可用的槽位:")
-    available_slots = DateUtil.get_available_slots(test_slots)
-    for slot in available_slots:
-        print(f"槽位 {slot}: {DateUtil.get_time_range(slot)}")
+    # 示例：从字符串获取时间槽索引
+    test_time_str = "9:00 AM - 9:30 AM"
+    time_slot = DateUtil.get_time_slot_from_str(test_time_str)
+    print(f"\n时间槽 {test_time_str} 对应的槽位: {time_slot}")
     
-    # 示例：预约和释放时间槽
-    test_slots = "0xFFFF"  # 所有槽位都可用
-    print(f"\n初始槽位: {test_slots}")
+    # 示例：将时间槽列表转换为16进制字符串
+    test_time_slots = [1, 5, 9, 13]
+    hex_str = DateUtil.time_slots_to_hex(test_time_slots)
+    print(f"\n时间槽 {test_time_slots} 转换为16进制字符串: {hex_str}")
     
-    # 预约槽位0（09:00-09:30）
-    reserved = DateUtil.reserve_slot(test_slots, 0)
-    print(f"预约槽位0后: 0x{reserved}")
-    
-    # 再释放槽位0
-    released = DateUtil.release_slot(reserved, 0)
-    print(f"释放槽位0后: 0x{released}") 
+    # 示例：将16进制字符串转换为时间槽列表
+    test_hex_str = "0x1357"
+    time_slots = DateUtil.hex_to_time_slots(test_hex_str)
+    print(f"\n16进制字符串 {test_hex_str} 转换为时间槽: {time_slots}") 

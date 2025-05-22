@@ -5,9 +5,9 @@
 基础仓库类
 """
 
-import csv
 import os
 from typing import List, Dict, Any, TypeVar, Generic, Type, Optional
+from src.utils.file_util import FileUtil
 
 T = TypeVar('T')
 
@@ -25,12 +25,7 @@ class BaseRepository(Generic[T]):
         self.entity_class = entity_class
         
         # 确保数据文件存在
-        if not os.path.exists(data_file):
-            # 创建目录
-            os.makedirs(os.path.dirname(data_file), exist_ok=True)
-            # 创建空文件
-            with open(data_file, 'w', newline='', encoding='utf-8') as f:
-                pass
+        FileUtil.ensure_file_exists(data_file)
     
     def get_all(self) -> List[T]:
         """获取所有实体
@@ -40,16 +35,13 @@ class BaseRepository(Generic[T]):
         """
         entities = []
         
-        try:
-            with open(self.data_file, 'r', newline='', encoding='utf-8') as f:
-                reader = csv.DictReader(f)
-                if reader.fieldnames:  # 确保文件不为空
-                    for row in reader:
-                        entity = self.entity_class.from_dict(row)
-                        entities.append(entity)
-        except FileNotFoundError:
-            # 文件不存在时返回空列表
-            pass
+        # 读取CSV文件
+        rows = FileUtil.read_csv(self.data_file)
+        
+        # 转换为实体对象
+        for row in rows:
+            entity = self.entity_class.from_dict(row)
+            entities.append(entity)
         
         return entities
     
@@ -79,21 +71,15 @@ class BaseRepository(Generic[T]):
         Returns:
             T: 添加后的实体
         """
-        entities = self.get_all()
-        
         # 如果是新实体，生成ID
         if entity.id is None:
-            max_id = 0
-            for e in entities:
-                if e.id is not None and int(e.id) > max_id:
-                    max_id = int(e.id)
-            entity.id = max_id + 1
+            entity.id = FileUtil.get_next_id(self.data_file)
         
-        # 添加实体
-        entities.append(entity)
+        # 将实体转换为字典
+        entity_dict = entity.to_dict()
         
-        # 保存到文件
-        self._save_all(entities)
+        # 追加到CSV文件
+        FileUtil.append_csv(self.data_file, entity_dict)
         
         return entity
     
@@ -106,15 +92,15 @@ class BaseRepository(Generic[T]):
         Returns:
             T: 更新后的实体
         """
-        entities = self.get_all()
+        # 将实体转换为字典
+        entity_dict = entity.to_dict()
         
-        for i, e in enumerate(entities):
-            if str(e.id) == str(entity.id):
-                entities[i] = entity
-                break
-        
-        # 保存到文件
-        self._save_all(entities)
+        # 更新CSV文件中的行
+        FileUtil.update_row(
+            self.data_file,
+            lambda row: str(row.get('id')) == str(entity.id),
+            entity_dict
+        )
         
         return entity
     
@@ -127,17 +113,11 @@ class BaseRepository(Generic[T]):
         Returns:
             bool: 是否删除成功
         """
-        entities = self.get_all()
-        original_count = len(entities)
-        
-        entities = [e for e in entities if str(e.id) != str(entity_id)]
-        
-        if len(entities) < original_count:
-            # 保存到文件
-            self._save_all(entities)
-            return True
-        
-        return False
+        # 从CSV文件中删除行
+        return FileUtil.delete_row(
+            self.data_file,
+            lambda row: str(row.get('id')) == str(entity_id)
+        )
     
     def _save_all(self, entities: List[T]) -> None:
         """保存所有实体到文件
@@ -148,17 +128,5 @@ class BaseRepository(Generic[T]):
         # 将实体转换为字典
         rows = [entity.to_dict() for entity in entities]
         
-        if not rows:
-            # 如果没有实体，创建空文件
-            with open(self.data_file, 'w', newline='', encoding='utf-8') as f:
-                pass
-            return
-        
-        # 获取所有字段
-        fieldnames = rows[0].keys()
-        
         # 写入CSV文件
-        with open(self.data_file, 'w', newline='', encoding='utf-8') as f:
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(rows) 
+        FileUtil.write_csv(self.data_file, rows) 
