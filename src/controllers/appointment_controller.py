@@ -439,7 +439,7 @@ class AppointmentController:
                 
                 # 创建通知
                 notification = Notification(
-                    patient_email=user.email,
+                    user_id=user.id,
                     message=f"您已成功预约 {date} {DateUtil.get_time_slot_str(time_slot)} 在 {clinic.name} 与 {doctor.full_name} 的就诊。",
                     date=DateUtil.get_current_date(),
                     read=False
@@ -590,7 +590,7 @@ class AppointmentController:
         if self.__appointment_repo.cancel_appointment(appointment):
             # 创建通知
             notification = Notification(
-                patient_email=appointment.patient_email,
+                user_id=user.id,
                 message=f"您已取消 {appointment.date} {DateUtil.get_time_slot_str(appointment.time_slot)} 的预约。",
                 date=DateUtil.get_current_date(),
                 read=False
