@@ -53,8 +53,8 @@ class UserController:
             print("\n===== Patient Menu =====")
             print("1. Manage Profile")
             print("2. Manage Appointments")
-            print("0. Logout  (上一层)")
-            print("-. Main Menu (主菜单)")
+            print("0. Logout")
+            print("-. Main Menu")
             choice = input("Select: ").strip()
 
             if choice == "1":
@@ -70,29 +70,41 @@ class UserController:
                 print("Invalid choice.")
 
     # ─────────────────────── 管理员菜单 ───────────────────────
+    # ─────────────────────── 管理员菜单 ───────────────────────
     def _admin_menu(self) -> None:
         while True:
             print("\n===== Admin Menu =====")
-
             print("1. Clinic / GP Management")
             print("2. Appointment Management")
             print("3. Reports / Statistics")
-            print("0. Logout  (上一层)")
-            print("-. Main Menu (主菜单)")
-            choice = input("Select: ").strip()
+            print("0. Logout")
+            print("-. Main Menu")
 
+            choice = input("Select: ").strip()
 
             if choice == "1":
                 self._enter_admin_controller("clinic")
+
             elif choice == "2":
-                self._enter_admin_controller("appointment")
+                # 直接进入预约管理子菜单（全局权限）
+                try:
+                    from src.controllers.appointment_controller import AppointmentController
+                    AppointmentController().run_admin_menu()
+                except ModuleNotFoundError:
+                    print("Appointment module not ready.")
+                except Exception as e:
+                    print(f"Error: {e}")
+
             elif choice == "3":
                 self._enter_admin_controller("report")
+
             elif choice == "0":
                 print("Logged out.")
-                return
+                return  # 回到登录界面
+
             elif choice == "-":
-                continue  # 已是主菜单；重刷
+                continue  # 已在主菜单；刷新
+
             else:
                 print("Invalid choice.")
 
