@@ -8,12 +8,12 @@
 class User:
     """<<Entity>> 用户实体类"""
     
-    def __init__(self, user_id=None, email=None, password=None, role=None, name=None, phone=None, address=None,
+    def __init__(self, id=None, email=None, password=None, role=None, name=None, phone=None, address=None,
                  date_of_birth=None, gender=None, medical_history=None):
         """初始化用户实体
         
         Args:
-            user_id (int, optional): 用户ID
+            id (int, optional): 用户ID
             email (str, optional): 电子邮箱
             password (str, optional): 密码
             role (str, optional): 角色（patient/admin）
@@ -24,7 +24,7 @@ class User:
             gender (str, optional): 性别，仅患者需要
             medical_history (str, optional): 病史，仅患者需要
         """
-        self.__id = int(user_id) if user_id is not None else None
+        self.__id = int(id) if id is not None else None
         self.__email = str(email) if email is not None else None
         self.__password = str(password) if password is not None else None
         self.__role = str(role) if role is not None else None
@@ -273,7 +273,7 @@ class User:
             User: 用户实体
         """
         return cls(
-            user_id=data.get("id"),
+            id=data.get("id"),
             email=data.get("email"),
             password=data.get("password"),
             role=data.get("role"),

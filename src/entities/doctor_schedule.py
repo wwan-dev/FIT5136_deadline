@@ -8,21 +8,30 @@
 class DoctorSchedule:
     """<<Entity>> 医生排班实体类"""
     
-    def __init__(self, doctor_id=None, date=None, clinic_id=None, time_slots=None):
+    def __init__(self, id=None, doctor_id=None, clinic_id=None, time_slots=None):
         """初始化医生排班实体
         
         Args:
+            id (int, optional): 排班ID
             doctor_id (int, optional): 医生ID
-            date (str, optional): 日期，格式为 "YYYY-MM-DD"
             clinic_id (int, optional): 诊所ID
             time_slots (str, optional): 16进制表示的时间槽
         """
+        self.__id = int(id) if id is not None else None
         self.__doctor_id = int(doctor_id) if doctor_id is not None else None
-        self.__date = str(date) if date is not None else None
         self.__clinic_id = int(clinic_id) if clinic_id is not None else None
         self.__time_slots = str(time_slots) if time_slots is not None else None
     
     # 访问器方法
+    @property
+    def id(self) -> int:
+        """获取排班ID
+        
+        Returns:
+            int: 排班ID
+        """
+        return self.__id
+    
     @property
     def doctor_id(self) -> int:
         """获取医生ID
@@ -31,15 +40,6 @@ class DoctorSchedule:
             int: 医生ID
         """
         return self.__doctor_id
-    
-    @property
-    def date(self) -> str:
-        """获取日期
-        
-        Returns:
-            str: 日期
-        """
-        return self.__date
     
     @property
     def clinic_id(self) -> int:
@@ -68,15 +68,6 @@ class DoctorSchedule:
             doctor_id (int): 医生ID
         """
         self.__doctor_id = int(doctor_id) if doctor_id is not None else None
-    
-    @date.setter
-    def date(self, date: str) -> None:
-        """设置日期
-        
-        Args:
-            date (str): 日期
-        """
-        self.__date = str(date) if date is not None else None
     
     @clinic_id.setter
     def clinic_id(self, clinic_id: int) -> None:
@@ -157,7 +148,7 @@ class DoctorSchedule:
         Returns:
             str: 医生排班字符串表示
         """
-        return f"DoctorSchedule(doctor_id={self.__doctor_id}, date={self.__date}, clinic_id={self.__clinic_id}, time_slots={self.__time_slots})"
+        return f"DoctorSchedule(id={self.__id}, doctor_id={self.__doctor_id}, clinic_id={self.__clinic_id}, time_slots={self.__time_slots})"
     
     def to_dict(self) -> dict:
         """转换为字典
@@ -166,8 +157,8 @@ class DoctorSchedule:
             dict: 医生排班字典表示
         """
         return {
+            "id": self.__id,
             "doctor_id": self.__doctor_id,
-            "date": self.__date,
             "clinic_id": self.__clinic_id,
             "time_slots": self.__time_slots
         }
@@ -183,8 +174,8 @@ class DoctorSchedule:
             DoctorSchedule: 医生排班实体
         """
         return cls(
+            id=data.get("id"),
             doctor_id=data.get("doctor_id"),
-            date=data.get("date"),
             clinic_id=data.get("clinic_id"),
             time_slots=data.get("time_slots")
         ) 

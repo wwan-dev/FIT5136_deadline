@@ -8,6 +8,7 @@
 import os
 from typing import List, Dict, Any, TypeVar, Generic, Type, Optional
 from src.utils.file_util import FileUtil
+from src.utils.id_generator import IdGenerator
 
 T = TypeVar('T')
 
@@ -26,6 +27,10 @@ class BaseRepository(Generic[T]):
         
         # 确保数据文件存在
         FileUtil.ensure_file_exists(data_file)
+        
+        # 获取实体类型
+        file_name = os.path.basename(data_file)
+        self.entity_type = os.path.splitext(file_name)[0]
     
     def get_all(self) -> List[T]:
         """获取所有实体
@@ -71,9 +76,14 @@ class BaseRepository(Generic[T]):
         Returns:
             T: 添加后的实体
         """
-        # 如果是新实体，生成ID
+        # 如果是新实体，使用IdGenerator生成ID
         if entity.id is None:
-            entity.id = FileUtil.get_next_id(self.data_file)
+            # 使用entity_type生成ID
+            next_id = IdGenerator.next_id(self.entity_type)
+            
+            # 由于实体类没有id的setter，需要使用反射设置id属性
+            # 这里假设实体类的id被存储在_Entity__id中（Python名称修饰）
+            setattr(entity, f"_{entity.__class__.__name__}__id", next_id)
         
         # 将实体转换为字典
         entity_dict = entity.to_dict()

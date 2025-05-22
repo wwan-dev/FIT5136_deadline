@@ -8,17 +8,17 @@
 class Notification:
     """<<Entity>> 通知实体类"""
     
-    def __init__(self, notification_id=None, patient_email=None, message=None, date=None, read=False):
+    def __init__(self, id=None, patient_email=None, message=None, date=None, read=False):
         """初始化通知实体
         
         Args:
-            notification_id (int, optional): 通知ID
+            id (int, optional): 通知ID
             patient_email (str, optional): 患者电子邮箱
             message (str, optional): 通知消息内容
             date (str, optional): 日期，格式为 "YYYY-MM-DD"
             read (bool, optional): 是否已读
         """
-        self.__id = int(notification_id) if notification_id is not None else None
+        self.__id = int(id) if id is not None else None
         self.__patient_email = str(patient_email) if patient_email is not None else None
         self.__message = str(message) if message is not None else None
         self.__date = str(date) if date is not None else None
@@ -149,7 +149,7 @@ class Notification:
             Notification: 通知实体
         """
         return cls(
-            notification_id=data.get("id"),
+            id=data.get("id"),
             patient_email=data.get("patient_email"),
             message=data.get("message"),
             date=data.get("date"),

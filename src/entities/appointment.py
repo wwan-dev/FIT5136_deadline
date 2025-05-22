@@ -8,12 +8,12 @@
 class Appointment:
     """<<Entity>> 预约实体类"""
     
-    def __init__(self, appointment_id=None, patient_email=None, doctor_id=None, clinic_id=None, 
+    def __init__(self, id=None, patient_email=None, doctor_id=None, clinic_id=None, 
                  date=None, time_slot=None, reason=None, status=None):
         """初始化预约实体
         
         Args:
-            appointment_id (int, optional): 预约ID
+            id (int, optional): 预约ID
             patient_email (str, optional): 患者电子邮箱
             doctor_id (int, optional): 医生ID
             clinic_id (int, optional): 诊所ID
@@ -22,7 +22,7 @@ class Appointment:
             reason (str, optional): 预约原因
             status (str, optional): 预约状态
         """
-        self.__id = int(appointment_id) if appointment_id is not None else None
+        self.__id = int(id) if id is not None else None
         self.__patient_email = str(patient_email) if patient_email is not None else None
         self.__doctor_id = int(doctor_id) if doctor_id is not None else None
         self.__clinic_id = int(clinic_id) if clinic_id is not None else None
@@ -245,7 +245,7 @@ class Appointment:
             Appointment: 预约实体
         """
         return cls(
-            appointment_id=data.get("id"),
+            id=data.get("id"),
             patient_email=data.get("patient_email"),
             doctor_id=data.get("doctor_id"),
             clinic_id=data.get("clinic_id"),

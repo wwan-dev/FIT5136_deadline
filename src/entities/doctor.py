@@ -10,17 +10,17 @@ from typing import List
 class Doctor:
     """<<Entity>> 医生实体类"""
     
-    def __init__(self, doctor_id=None, full_name=None, email=None, assigned_clinics=None, specialisation=None):
+    def __init__(self, id=None, full_name=None, email=None, assigned_clinics=None, specialisation=None):
         """初始化医生实体
         
         Args:
-            doctor_id (int, optional): 医生ID
+            id (int, optional): 医生ID
             full_name (str, optional): 全名
             email (str, optional): 电子邮箱
             assigned_clinics (list, optional): 所属诊所ID列表
             specialisation (list, optional): 专业领域列表
         """
-        self.__id = int(doctor_id) if doctor_id is not None else None
+        self.__id = int(id) if id is not None else None
         self.__full_name = str(full_name) if full_name is not None else None
         self.__email = str(email) if email is not None else None
         self.__assigned_clinics = assigned_clinics if assigned_clinics else []
@@ -211,7 +211,7 @@ class Doctor:
             specialisation = [spec.strip() for spec in specialisation.split(";") if spec]
         
         return cls(
-            doctor_id=data.get("id"),
+            id=data.get("id"),
             full_name=data.get("full_name"),
             email=data.get("email"),
             assigned_clinics=assigned_clinics,

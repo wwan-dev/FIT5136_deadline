@@ -10,6 +10,7 @@ from typing import List, Optional
 from datetime import datetime
 from src.entities.appointment import Appointment
 from src.repositories.base_repository import BaseRepository
+from src.repositories.doctor_schedule_repository import DoctorScheduleRepository
 
 class AppointmentRepository(BaseRepository[Appointment]):
     """预约仓库类"""
@@ -18,6 +19,7 @@ class AppointmentRepository(BaseRepository[Appointment]):
         """初始化预约仓库"""
         data_file = os.path.join("data", "appointments.csv")
         super().__init__(data_file, Appointment)
+        self.__schedule_repo = DoctorScheduleRepository()
     
     def get_by_patient(self, patient_email: str) -> List[Appointment]:
         """根据患者电子邮箱获取预约列表
@@ -140,4 +142,59 @@ class AppointmentRepository(BaseRepository[Appointment]):
             bool: 如果时间槽已被预约返回True，否则返回False
         """
         appointment = self.get_by_doctor_date_slot(doctor_id, date, time_slot)
-        return appointment is not None 
+        return appointment is not None
+    
+    def add_appointment(self, appointment: Appointment, update_schedule: bool = True) -> Appointment:
+        """添加预约并更新医生排班
+        
+        Args:
+            appointment (Appointment): 预约实体
+            update_schedule (bool, optional): 是否更新医生排班. 默认为 True.
+            
+        Returns:
+            Appointment: 添加的预约
+        """
+        # 首先检查时间槽是否可用
+        if self.is_slot_booked(appointment.doctor_id, appointment.date, appointment.time_slot):
+            raise ValueError("该时间槽已被预约")
+        
+        # 添加预约
+        added_appointment = self.add(appointment)
+        
+        # 如果需要，更新医生排班
+        if update_schedule:
+            self.__schedule_repo.set_slot_unavailable(
+                appointment.doctor_id,
+                appointment.clinic_id,
+                appointment.time_slot - 1  # 医生排班的时间槽索引从0开始，预约的时间槽从1开始
+            )
+        
+        return added_appointment
+    
+    def cancel_appointment(self, appointment: Appointment, update_schedule: bool = True) -> bool:
+        """取消预约并更新医生排班
+        
+        Args:
+            appointment (Appointment): 预约实体
+            update_schedule (bool, optional): 是否更新医生排班. 默认为 True.
+            
+        Returns:
+            bool: 如果取消成功返回True，否则返回False
+        """
+        # 更新预约状态
+        if appointment.is_cancelled():
+            return False
+        
+        # 取消预约
+        appointment.cancel_by_patient()
+        self.update(appointment)
+        
+        # 如果需要，更新医生排班
+        if update_schedule:
+            self.__schedule_repo.set_slot_available(
+                appointment.doctor_id,
+                appointment.clinic_id,
+                appointment.time_slot - 1  # 医生排班的时间槽索引从0开始，预约的时间槽从1开始
+            )
+        
+        return True 

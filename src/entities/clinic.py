@@ -8,17 +8,17 @@
 class Clinic:
     """<<Entity>> 诊所实体类"""
     
-    def __init__(self, clinic_id=None, name=None, suburb=None, address=None, phone=None):
+    def __init__(self, id=None, name=None, suburb=None, address=None, phone=None):
         """初始化诊所实体
         
         Args:
-            clinic_id (int, optional): 诊所ID
+            id (int, optional): 诊所ID
             name (str, optional): 诊所名称
             suburb (str, optional): 所在郊区
             address (str, optional): 地址
             phone (str, optional): 电话号码
         """
-        self.__id = int(clinic_id) if clinic_id is not None else None
+        self.__id = int(id) if id is not None else None
         self.__name = str(name) if name is not None else None
         self.__suburb = str(suburb) if suburb is not None else None
         self.__address = str(address) if address is not None else None
@@ -140,7 +140,7 @@ class Clinic:
             Clinic: 诊所实体
         """
         return cls(
-            clinic_id=data.get("id"),
+            id=data.get("id"),
             name=data.get("name"),
             suburb=data.get("suburb"),
             address=data.get("address"),
