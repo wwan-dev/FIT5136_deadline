@@ -164,11 +164,19 @@ class UserController:
         根据 mode 跳转到相应管理员子模块
         mode ∈ {"clinic", "appointment", "report"}
         """
-        # try:
-        #     from src.controllers.admin_controller import AdminController
-        #     AdminController(self._current_user, mode).run()
-        # except ModuleNotFoundError:
-        #     print("Admin module not ready.")
-        # except Exception as e:
-        #     print(f"Error: {e}")
-        return None
+        if mode == "clinic":
+            try:
+                from src.controllers.clinic_controller import ClinicController
+                return_to_main = ClinicController(self._current_user).run()
+                if return_to_main:
+                    return  # 直接返回登录界面
+            except ModuleNotFoundError:
+                print("Clinic management module not ready.")
+            except Exception as e:
+                print(f"Error: {e}")
+        elif mode == "report":
+            print("Reports module not implemented yet.")
+            input("Press Enter to continue...")
+        else:
+            print(f"Unknown admin module: {mode}")
+            input("Press Enter to continue...")
