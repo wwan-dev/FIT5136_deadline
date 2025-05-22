@@ -6,3 +6,4 @@ id,patient_email,doctor_id,clinic_id,date,time_slot,reason,status
 5,patient1@student.monash.edu,1,1,2023-05-15,1,General Consultation,Scheduled
 6,patient2@student.monash.edu,2,3,2023-05-15,8,Mental Health Consultation,Scheduled
 7,patient1@student.monash.edu,4,2,2023-05-16,4,Vaccination,Scheduled 
+8,1,1,1,2025-05-23,9,Daily,Scheduled

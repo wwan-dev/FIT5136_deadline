@@ -80,7 +80,7 @@ class DoctorScheduleRepository(BaseRepository[DoctorSchedule]):
         return DateUtil.hex_to_time_slots(schedule.time_slots)
     
     def is_slot_available(self, doctor_id: int, clinic_id: int, time_slot: int) -> bool:
-        """判断时间槽是否可用
+        """判断时间槽是否在医生排班中可用
         
         Args:
             doctor_id (int): 医生ID
@@ -88,7 +88,7 @@ class DoctorScheduleRepository(BaseRepository[DoctorSchedule]):
             time_slot (int): 时间槽索引
             
         Returns:
-            bool: 如果时间槽可用返回True，否则返回False
+            bool: 如果时间槽在排班中可用返回True，否则返回False
         """
         schedule = self.get_by_doctor_clinic(doctor_id, clinic_id)
         
@@ -97,69 +97,30 @@ class DoctorScheduleRepository(BaseRepository[DoctorSchedule]):
         
         return schedule.is_available(time_slot)
     
-    def set_slot_unavailable(self, doctor_id: int, clinic_id: int, time_slot: int) -> bool:
-        """设置时间槽为不可用
+    def create_default_schedule(self, doctor_id: int, clinic_id: int) -> DoctorSchedule:
+        """创建默认排班，所有时间槽都可用
         
         Args:
             doctor_id (int): 医生ID
             clinic_id (int): 诊所ID
-            time_slot (int): 时间槽索引
             
         Returns:
-            bool: 如果设置成功返回True，否则返回False
+            DoctorSchedule: 创建的排班
         """
-        schedule = self.get_by_doctor_clinic(doctor_id, clinic_id)
-        
-        if not schedule:
-            # 如果找不到，创建一个新排班，所有时间槽都可用
-            time_slots = DateUtil.time_slots_to_hex(list(range(1, 17)))
-            schedule = DoctorSchedule(
-                id=None,
-                doctor_id=doctor_id, 
-                clinic_id=clinic_id,
-                time_slots=time_slots
-            )
-            self.add(schedule)
-        
-        schedule.set_unavailable(time_slot)
-        self.update(schedule)
-        
-        return True
+        # 创建一个新排班，所有时间槽都可用
+        time_slots = DateUtil.time_slots_to_hex(list(range(1, 17)))
+        schedule = DoctorSchedule(
+            id=None,
+            doctor_id=doctor_id, 
+            clinic_id=clinic_id,
+            time_slots=time_slots
+        )
+        return self.add(schedule)
     
-    def set_slot_available(self, doctor_id: int, clinic_id: int, time_slot: int) -> bool:
-        """设置时间槽为可用
-        
-        Args:
-            doctor_id (int): 医生ID
-            clinic_id (int): 诊所ID
-            time_slot (int): 时间槽索引
-            
-        Returns:
-            bool: 如果设置成功返回True，否则返回False
-        """
-        schedule = self.get_by_doctor_clinic(doctor_id, clinic_id)
-        
-        if not schedule:
-            # 如果找不到，创建一个新排班，所有时间槽都可用
-            time_slots = DateUtil.time_slots_to_hex(list(range(1, 17)))
-            schedule = DoctorSchedule(
-                id=None,
-                doctor_id=doctor_id, 
-                clinic_id=clinic_id,
-                time_slots=time_slots
-            )
-            self.add(schedule)
-        
-        schedule.set_available(time_slot)
-        self.update(schedule)
-        
-        return True
-    
-    def get_future_schedules(self) -> List[DoctorSchedule]:
-        """获取未来的排班列表
+    def get_all_schedules(self) -> List[DoctorSchedule]:
+        """获取所有排班列表
         
         Returns:
             List[DoctorSchedule]: 排班列表
         """
-        # 返回所有排班，因为排班不再与日期相关联
         return self.get_all() 

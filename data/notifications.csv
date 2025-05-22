@@ -4,3 +4,4 @@ id,patient_email,message,date,read
 3,patient1@student.monash.edu,您的预约已被确认：2023年5月16日 时间槽4 在Monash Caulfield Clinic与Dr. Sarah Chen的疫苗接种,2023-05-12,false
 4,patient1@student.monash.edu,您的预约已被取消：2023年5月5日 时间槽3 在Monash Caulfield Clinic与Dr. Michael Johnson的慢性疾病管理,2023-05-04,true
 5,patient2@student.monash.edu,您的预约已被诊所取消：2023年5月7日 时间槽10 在Monash Clayton Clinic与Dr. Sarah Chen的转诊。请重新安排预约。,2023-05-06,true 
+6,1,您已成功预约 2025-05-23 1:00 PM - 1:30 PM 在 Monash Clayton Clinic 与 Dr. John Smith 的就诊。,2025-05-23,False

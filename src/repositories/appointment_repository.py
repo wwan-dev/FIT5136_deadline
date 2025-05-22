@@ -145,34 +145,31 @@ class AppointmentRepository(BaseRepository[Appointment]):
         return appointment is not None
     
     def add_appointment(self, appointment: Appointment, update_schedule: bool = True) -> Appointment:
-        """添加预约并更新医生排班
+        """添加预约
         
         Args:
             appointment (Appointment): 预约实体
-            update_schedule (bool, optional): 是否更新医生排班. 默认为 True.
+            update_schedule (bool, optional): 是否更新医生排班. 默认为 True，但已不再使用.
             
         Returns:
             Appointment: 添加的预约
         """
         # 首先检查时间槽是否可用
-        if self.is_slot_booked(appointment.doctor_id, appointment.date, appointment.time_slot):
-            raise ValueError("该时间槽已被预约")
+        if not self.is_slot_available(
+            appointment.doctor_id, 
+            appointment.clinic_id, 
+            appointment.date, 
+            appointment.time_slot
+        ):
+            raise ValueError("该时间槽不可用，可能已被预约或不在医生工作时间内")
         
         # 添加预约
         added_appointment = self.add(appointment)
         
-        # 如果需要，更新医生排班
-        if update_schedule:
-            self.__schedule_repo.set_slot_unavailable(
-                appointment.doctor_id,
-                appointment.clinic_id,
-                appointment.time_slot - 1  # 医生排班的时间槽索引从0开始，预约的时间槽从1开始
-            )
-        
         return added_appointment
     
     def cancel_appointment(self, appointment: Appointment, update_schedule: bool = True) -> bool:
-        """取消预约并更新医生排班
+        """取消预约
         
         Args:
             appointment (Appointment): 预约实体
@@ -189,12 +186,23 @@ class AppointmentRepository(BaseRepository[Appointment]):
         appointment.cancel_by_patient()
         self.update(appointment)
         
-        # 如果需要，更新医生排班
-        if update_schedule:
-            self.__schedule_repo.set_slot_available(
-                appointment.doctor_id,
-                appointment.clinic_id,
-                appointment.time_slot - 1  # 医生排班的时间槽索引从0开始，预约的时间槽从1开始
-            )
-        
         return True 
+
+    def is_slot_available(self, doctor_id: int, clinic_id: int, date: str, time_slot: int) -> bool:
+        """判断时间槽是否可用（在医生排班中可用且未被预约）
+        
+        Args:
+            doctor_id (int): 医生ID
+            clinic_id (int): 诊所ID
+            date (str): 日期，格式为 "YYYY-MM-DD"
+            time_slot (int): 时间槽索引
+            
+        Returns:
+            bool: 如果时间槽可用返回True，否则返回False
+        """
+        # 首先检查该时间槽是否已被预约
+        if self.is_slot_booked(doctor_id, date, time_slot):
+            return False
+        
+        # 然后检查该时间槽是否在医生排班中可用
+        return self.__schedule_repo.is_slot_available(doctor_id, clinic_id, time_slot - 1) 
