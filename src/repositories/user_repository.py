@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-用户仓库类
+User Repository Class
 """
 
 import os
@@ -11,21 +11,21 @@ from src.entities.user import User
 from src.repositories.base_repository import BaseRepository
 
 class UserRepository(BaseRepository[User]):
-    """用户仓库类"""
+    """User Repository Class"""
     
     def __init__(self):
-        """初始化用户仓库"""
+        """Initialize user repository"""
         data_file = os.path.join("data", "users.csv")
         super().__init__(data_file, User)
     
     def get_by_email(self, email: str) -> Optional[User]:
-        """根据电子邮箱获取用户
+        """Get user by email
         
         Args:
-            email (str): 用户电子邮箱
+            email (str): User email
             
         Returns:
-            Optional[User]: 用户，如果不存在则返回None
+            Optional[User]: User if found, None otherwise
         """
         users = self.get_all()
         
@@ -36,32 +36,32 @@ class UserRepository(BaseRepository[User]):
         return None
     
     def get_patients(self) -> List[User]:
-        """获取所有患者
+        """Get all patients
         
         Returns:
-            List[User]: 患者列表
+            List[User]: List of patients
         """
         users = self.get_all()
         return [user for user in users if user.is_patient()]
     
     def get_admins(self) -> List[User]:
-        """获取所有管理员
+        """Get all admins
         
         Returns:
-            List[User]: 管理员列表
+            List[User]: List of admins
         """
         users = self.get_all()
         return [user for user in users if user.is_admin()]
     
     def authenticate(self, email: str, password: str) -> Optional[User]:
-        """验证用户登录
+        """Authenticate user login
         
         Args:
-            email (str): 用户电子邮箱
-            password (str): 用户密码
+            email (str): User email
+            password (str): User password
             
         Returns:
-            Optional[User]: 用户，如果验证失败则返回None
+            Optional[User]: User if authentication successful, None otherwise
         """
         user = self.get_by_email(email)
         
@@ -71,23 +71,23 @@ class UserRepository(BaseRepository[User]):
         return None
 
     # ─────────────────────────────────────────────
-    # 新增：保存更新后的用户信息到 users.csv
+    # Save updated user information to users.csv
     # ─────────────────────────────────────────────
     def update_user(self, user: User) -> bool:
         """
-        用 user.id 作为主键，将该用户整行写回 users.csv
+        Use user.id as primary key to write the user row back to users.csv
         """
         from src.utils.file_util import FileUtil
 
-        # 读取当前CSV文件以获取可用的字段名
+        # Read current CSV file to get available field names
         existing_data = FileUtil.read_csv(self.data_file)
         if not existing_data:
             return False
         
-        # 获取当前CSV文件的字段名
+        # Get field names from current CSV file
         available_fields = existing_data[0].keys()
         
-        # 只保留CSV文件中存在的字段
+        # Only keep fields that exist in CSV file
         user_dict = user.to_dict()
         update_data = {k: v for k, v in user_dict.items() if k in available_fields}
         

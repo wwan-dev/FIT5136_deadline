@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-医生仓库类
+Doctor Repository Class
 """
 
 import os
@@ -11,45 +11,45 @@ from src.entities.doctor import Doctor
 from src.repositories.base_repository import BaseRepository
 
 class DoctorRepository(BaseRepository[Doctor]):
-    """医生仓库类"""
+    """Doctor Repository Class"""
     
     def __init__(self):
-        """初始化医生仓库"""
+        """Initialize doctor repository"""
         data_file = os.path.join("data", "doctors.csv")
         super().__init__(data_file, Doctor)
     
     def get_by_clinic(self, clinic_id: int) -> List[Doctor]:
-        """根据诊所ID获取医生列表
+        """Get doctors by clinic ID
         
         Args:
-            clinic_id (int): 诊所ID
+            clinic_id (int): Clinic ID
             
         Returns:
-            List[Doctor]: 医生列表
+            List[Doctor]: List of doctors
         """
         doctors = self.get_all()
         return [doctor for doctor in doctors if doctor.is_working_in_clinic(clinic_id)]
     
     def get_by_specialisation(self, specialisation: str) -> List[Doctor]:
-        """根据专业领域获取医生列表
+        """Get doctors by specialisation
         
         Args:
-            specialisation (str): 专业领域
+            specialisation (str): Specialisation
             
         Returns:
-            List[Doctor]: 医生列表
+            List[Doctor]: List of doctors
         """
         doctors = self.get_all()
         return [doctor for doctor in doctors if doctor.has_specialisation(specialisation)]
     
     def get_by_email(self, email: str) -> Optional[Doctor]:
-        """根据电子邮箱获取医生
+        """Get doctor by email
         
         Args:
-            email (str): 医生电子邮箱
+            email (str): Doctor's email
             
         Returns:
-            Optional[Doctor]: 医生，如果不存在则返回None
+            Optional[Doctor]: Doctor if found, None otherwise
         """
         doctors = self.get_all()
         
@@ -60,13 +60,13 @@ class DoctorRepository(BaseRepository[Doctor]):
         return None
     
     def search(self, keyword: str) -> List[Doctor]:
-        """搜索医生
+        """Search doctors
         
         Args:
-            keyword (str): 关键字
+            keyword (str): Search keyword
             
         Returns:
-            List[Doctor]: 医生列表
+            List[Doctor]: List of matching doctors
         """
         doctors = self.get_all()
         keyword = keyword.lower()
@@ -77,7 +77,7 @@ class DoctorRepository(BaseRepository[Doctor]):
                 result.append(doctor)
                 continue
             
-            # 检查专业领域
+            # Check specialisation
             for spec in doctor.specialisation:
                 if keyword in spec.lower():
                     result.append(doctor)

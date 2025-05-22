@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-通知仓库类
+Notification Repository Class
 """
 
 import os
@@ -12,45 +12,45 @@ from src.entities.notification import Notification
 from src.repositories.base_repository import BaseRepository
 
 class NotificationRepository(BaseRepository[Notification]):
-    """通知仓库类"""
+    """Notification Repository Class"""
     
     def __init__(self):
-        """初始化通知仓库"""
+        """Initialize notification repository"""
         data_file = os.path.join("data", "notifications.csv")
         super().__init__(data_file, Notification)
     
     def get_by_user(self, user_id: int) -> List[Notification]:
-        """根据用户ID获取通知列表
+        """Get notifications by user ID
         
         Args:
-            user_id (int): 用户ID
+            user_id (int): User ID
             
         Returns:
-            List[Notification]: 通知列表
+            List[Notification]: List of notifications
         """
         notifications = self.get_all()
         return [notification for notification in notifications if notification.user_id == user_id]
     
     def get_unread_by_user(self, user_id: int) -> List[Notification]:
-        """根据用户ID获取未读通知列表
+        """Get unread notifications by user ID
         
         Args:
-            user_id (int): 用户ID
+            user_id (int): User ID
             
         Returns:
-            List[Notification]: 未读通知列表
+            List[Notification]: List of unread notifications
         """
         notifications = self.get_by_user(user_id)
         return [notification for notification in notifications if not notification.read]
     
     def mark_as_read(self, notification_id: int) -> bool:
-        """将通知标记为已读
+        """Mark notification as read
         
         Args:
-            notification_id (int): 通知ID
+            notification_id (int): Notification ID
             
         Returns:
-            bool: 如果标记成功返回True，否则返回False
+            bool: True if marked successfully, False otherwise
         """
         notification = self.get_by_id(notification_id)
         
@@ -63,13 +63,13 @@ class NotificationRepository(BaseRepository[Notification]):
         return True
     
     def mark_all_as_read(self, user_id: int) -> int:
-        """将用户的所有通知标记为已读
+        """Mark all notifications of a user as read
         
         Args:
-            user_id (int): 用户ID
+            user_id (int): User ID
             
         Returns:
-            int: 标记为已读的通知数量
+            int: Number of notifications marked as read
         """
         unread_notifications = self.get_unread_by_user(user_id)
         count = 0
@@ -82,14 +82,14 @@ class NotificationRepository(BaseRepository[Notification]):
         return count
     
     def create_notification(self, user_id: int, message: str) -> Notification:
-        """创建新通知
+        """Create a new notification
         
         Args:
-            user_id (int): 用户ID
-            message (str): 通知消息内容
+            user_id (int): User ID
+            message (str): Notification message
             
         Returns:
-            Notification: 创建的通知
+            Notification: Created notification
         """
         today = datetime.now().strftime("%Y-%m-%d")
         

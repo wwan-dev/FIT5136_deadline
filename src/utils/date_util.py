@@ -219,6 +219,55 @@ class DateUtil:
         new_date = base + timedelta(days=offset)
         return new_date.strftime("%Y-%m-%d")
 
+    @staticmethod
+    def get_current_datetime() -> datetime:
+        """Get current datetime
+        
+        Returns:
+            datetime: Current datetime
+        """
+        return datetime.now()
+    
+    @staticmethod
+    def get_time_from_slot(time_slot: int) -> Tuple[int, int]:
+        """Get hour and minute from time slot
+        
+        Args:
+            time_slot (int): Time slot index (1-16)
+            
+        Returns:
+            Tuple[int, int]: Hour (24-hour format) and minute
+        """
+        if time_slot < 1 or time_slot > 16:
+            return (0, 0)
+        
+        # Time slots are from 9:00 AM to 5:00 PM in 30-minute increments
+        hour = 9 + (time_slot - 1) // 2
+        minute = 0 if (time_slot - 1) % 2 == 0 else 30
+        
+        return (hour, minute)
+    
+    @staticmethod
+    def datetime_from_date_and_slot(date_str: str, time_slot: int) -> datetime:
+        """Create datetime object from date string and time slot
+        
+        Args:
+            date_str (str): Date in format "YYYY-MM-DD"
+            time_slot (int): Time slot index (1-16)
+            
+        Returns:
+            datetime: Datetime object
+        """
+        hour, minute = DateUtil.get_time_from_slot(time_slot)
+        
+        # Convert string date to datetime and set hour/minute
+        try:
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+            return date_obj.replace(hour=hour, minute=minute, second=0, microsecond=0)
+        except ValueError:
+            # Return current time if date format is invalid
+            return datetime.now()
+
 
 # Test code
 if __name__ == "__main__":

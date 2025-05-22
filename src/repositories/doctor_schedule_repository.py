@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-医生排班仓库类
+Doctor Schedule Repository Class
 """
 
 import os
@@ -13,46 +13,46 @@ from src.repositories.base_repository import BaseRepository
 from src.utils.date_util import DateUtil
 
 class DoctorScheduleRepository(BaseRepository[DoctorSchedule]):
-    """医生排班仓库类"""
+    """Doctor Schedule Repository Class"""
     
     def __init__(self):
-        """初始化医生排班仓库"""
+        """Initialize doctor schedule repository"""
         data_file = os.path.join("data", "doctor_schedules.csv")
         super().__init__(data_file, DoctorSchedule)
     
     def get_by_doctor(self, doctor_id: int) -> List[DoctorSchedule]:
-        """根据医生ID获取排班列表
+        """Get schedules by doctor ID
         
         Args:
-            doctor_id (int): 医生ID
+            doctor_id (int): Doctor ID
             
         Returns:
-            List[DoctorSchedule]: 排班列表
+            List[DoctorSchedule]: List of schedules
         """
         schedules = self.get_all()
         return [schedule for schedule in schedules if schedule.doctor_id == doctor_id]
     
     def get_by_clinic(self, clinic_id: int) -> List[DoctorSchedule]:
-        """根据诊所ID获取排班列表
+        """Get schedules by clinic ID
         
         Args:
-            clinic_id (int): 诊所ID
+            clinic_id (int): Clinic ID
             
         Returns:
-            List[DoctorSchedule]: 排班列表
+            List[DoctorSchedule]: List of schedules
         """
         schedules = self.get_all()
         return [schedule for schedule in schedules if schedule.clinic_id == clinic_id]
     
     def get_by_doctor_clinic(self, doctor_id: int, clinic_id: int) -> Optional[DoctorSchedule]:
-        """根据医生ID和诊所ID获取排班
+        """Get schedule by doctor ID and clinic ID
         
         Args:
-            doctor_id (int): 医生ID
-            clinic_id (int): 诊所ID
+            doctor_id (int): Doctor ID
+            clinic_id (int): Clinic ID
             
         Returns:
-            Optional[DoctorSchedule]: 排班，如果不存在则返回None
+            Optional[DoctorSchedule]: Schedule if found, None otherwise
         """
         schedules = self.get_all()
         
@@ -63,14 +63,14 @@ class DoctorScheduleRepository(BaseRepository[DoctorSchedule]):
         return None
     
     def get_available_slots(self, doctor_id: int, clinic_id: int) -> List[int]:
-        """获取可用的时间槽列表
+        """Get available time slots
         
         Args:
-            doctor_id (int): 医生ID
-            clinic_id (int): 诊所ID
+            doctor_id (int): Doctor ID
+            clinic_id (int): Clinic ID
             
         Returns:
-            List[int]: 可用的时间槽索引列表
+            List[int]: List of available time slot indices
         """
         schedule = self.get_by_doctor_clinic(doctor_id, clinic_id)
         
@@ -80,15 +80,15 @@ class DoctorScheduleRepository(BaseRepository[DoctorSchedule]):
         return DateUtil.hex_to_time_slots(schedule.time_slots)
     
     def is_slot_available(self, doctor_id: int, clinic_id: int, time_slot: int) -> bool:
-        """判断时间槽是否在医生排班中可用
+        """Check if time slot is available in doctor's schedule
         
         Args:
-            doctor_id (int): 医生ID
-            clinic_id (int): 诊所ID
-            time_slot (int): 时间槽索引
+            doctor_id (int): Doctor ID
+            clinic_id (int): Clinic ID
+            time_slot (int): Time slot index
             
         Returns:
-            bool: 如果时间槽在排班中可用返回True，否则返回False
+            bool: True if time slot is available, False otherwise
         """
         schedule = self.get_by_doctor_clinic(doctor_id, clinic_id)
         
@@ -98,16 +98,16 @@ class DoctorScheduleRepository(BaseRepository[DoctorSchedule]):
         return schedule.is_available(time_slot)
     
     def create_default_schedule(self, doctor_id: int, clinic_id: int) -> DoctorSchedule:
-        """创建默认排班，所有时间槽都可用
+        """Create default schedule with all time slots available
         
         Args:
-            doctor_id (int): 医生ID
-            clinic_id (int): 诊所ID
+            doctor_id (int): Doctor ID
+            clinic_id (int): Clinic ID
             
         Returns:
-            DoctorSchedule: 创建的排班
+            DoctorSchedule: Created schedule
         """
-        # 创建一个新排班，所有时间槽都可用
+        # Create a new schedule with all time slots available
         time_slots = DateUtil.time_slots_to_hex(list(range(1, 17)))
         schedule = DoctorSchedule(
             id=None,
@@ -118,9 +118,9 @@ class DoctorScheduleRepository(BaseRepository[DoctorSchedule]):
         return self.add(schedule)
     
     def get_all_schedules(self) -> List[DoctorSchedule]:
-        """获取所有排班列表
+        """Get all schedules
         
         Returns:
-            List[DoctorSchedule]: 排班列表
+            List[DoctorSchedule]: List of schedules
         """
         return self.get_all() 

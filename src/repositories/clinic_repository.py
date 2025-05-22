@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-诊所仓库类
+Clinic Repository Class
 """
 
 import os
@@ -11,33 +11,33 @@ from src.entities.clinic import Clinic
 from src.repositories.base_repository import BaseRepository
 
 class ClinicRepository(BaseRepository[Clinic]):
-    """诊所仓库类"""
+    """Clinic Repository Class"""
     
     def __init__(self):
-        """初始化诊所仓库"""
+        """Initialize clinic repository"""
         data_file = os.path.join("data", "clinics.csv")
         super().__init__(data_file, Clinic)
     
     def get_by_suburb(self, suburb: str) -> List[Clinic]:
-        """根据郊区获取诊所列表
+        """Get clinics by suburb
         
         Args:
-            suburb (str): 郊区
+            suburb (str): Suburb name
             
         Returns:
-            List[Clinic]: 诊所列表
+            List[Clinic]: List of clinics
         """
         clinics = self.get_all()
         return [clinic for clinic in clinics if clinic.suburb.lower() == suburb.lower()]
     
     def get_by_name(self, name: str) -> Optional[Clinic]:
-        """根据名称获取诊所
+        """Get clinic by name
         
         Args:
-            name (str): 诊所名称
+            name (str): Clinic name
             
         Returns:
-            Optional[Clinic]: 诊所，如果不存在则返回None
+            Optional[Clinic]: Clinic if found, None otherwise
         """
         clinics = self.get_all()
         
@@ -48,13 +48,13 @@ class ClinicRepository(BaseRepository[Clinic]):
         return None
     
     def search(self, keyword: str) -> List[Clinic]:
-        """搜索诊所
+        """Search clinics
         
         Args:
-            keyword (str): 关键字
+            keyword (str): Search keyword
             
         Returns:
-            List[Clinic]: 诊所列表
+            List[Clinic]: List of matching clinics
         """
         clinics = self.get_all()
         keyword = keyword.lower()

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-预约服务类 - 处理预约相关的业务逻辑
+Appointment Service Class - Handles business logic for appointments
 """
 
 from typing import List, Optional, Tuple, Dict, Any
@@ -21,10 +21,10 @@ from src.utils.date_util import DateUtil
 
 
 class AppointmentService:
-    """预约服务类 - 处理预约相关的业务逻辑"""
+    """Appointment Service Class - Handles business logic for appointments"""
     
     def __init__(self):
-        """初始化预约服务"""
+        """Initialize appointment service"""
         self.__appointment_repo = AppointmentRepository()
         self.__clinic_repo = ClinicRepository()
         self.__doctor_repo = DoctorRepository()
@@ -33,133 +33,133 @@ class AppointmentService:
         self.__user_repo = UserRepository()
     
     def get_all_clinics(self) -> List:
-        """获取所有诊所
+        """Get all clinics
         
         Returns:
-            List: 诊所列表
+            List: List of clinics
         """
         return self.__clinic_repo.get_all()
     
     def get_clinic_by_id(self, clinic_id: int):
-        """根据ID获取诊所
+        """Get clinic by ID
         
         Args:
-            clinic_id (int): 诊所ID
+            clinic_id (int): Clinic ID
             
         Returns:
-            Clinic: 诊所对象
+            Clinic: Clinic object
         """
         return self.__clinic_repo.get_by_id(clinic_id)
     
     def get_all_doctors(self) -> List:
-        """获取所有医生
+        """Get all doctors
         
         Returns:
-            List: 医生列表
+            List: List of doctors
         """
         return self.__doctor_repo.get_all()
     
     def get_doctors_by_clinic(self, clinic_id: int) -> List:
-        """获取指定诊所的医生
+        """Get doctors by clinic
         
         Args:
-            clinic_id (int): 诊所ID
+            clinic_id (int): Clinic ID
             
         Returns:
-            List: 医生列表
+            List: List of doctors
         """
         return self.__doctor_repo.get_by_clinic(clinic_id)
     
     def get_doctor_by_id(self, doctor_id: int):
-        """根据ID获取医生
+        """Get doctor by ID
         
         Args:
-            doctor_id (int): 医生ID
+            doctor_id (int): Doctor ID
             
         Returns:
-            Doctor: 医生对象
+            Doctor: Doctor object
         """
         return self.__doctor_repo.get_by_id(doctor_id)
     
     def get_date_range(self, start_date: str, days: int) -> List[str]:
-        """获取日期范围
+        """Get date range
         
         Args:
-            start_date (str): 开始日期
-            days (int): 天数
+            start_date (str): Start date
+            days (int): Number of days
             
         Returns:
-            List[str]: 日期列表
+            List[str]: List of dates
         """
         return DateUtil.get_date_range(start_date, days)
     
     def get_current_date(self) -> str:
-        """获取当前日期
+        """Get current date
         
         Returns:
-            str: 当前日期
+            str: Current date
         """
         return DateUtil.get_current_date()
     
     def get_day_of_week(self, date: str) -> str:
-        """获取星期几
+        """Get day of week
         
         Args:
-            date (str): 日期
+            date (str): Date
             
         Returns:
-            str: 星期几
+            str: Day of week
         """
         return DateUtil.get_day_of_week(date)
     
     def is_valid_date(self, date_str: str) -> bool:
-        """检查日期格式是否有效
+        """Check if date format is valid
         
         Args:
-            date_str (str): 日期字符串
+            date_str (str): Date string
             
         Returns:
-            bool: 日期格式是否有效
+            bool: Whether date format is valid
         """
         return DateUtil.is_valid_date(date_str)
     
     def get_time_slot_str(self, slot: int) -> str:
-        """获取时间槽的字符串表示
+        """Get time slot string representation
         
         Args:
-            slot (int): 时间槽索引
+            slot (int): Time slot index
             
         Returns:
-            str: 时间槽字符串
+            str: Time slot string
         """
         return DateUtil.get_time_slot_str(slot)
     
     def get_available_time_slots(self, doctor_id: int, clinic_id: int, date: str) -> List[int]:
-        """获取指定日期医生在诊所的可用时间槽
+        """Get available time slots for a doctor at a clinic on a date
         
         Args:
-            doctor_id (int): 医生ID
-            clinic_id (int): 诊所ID
-            date (str): 日期，格式为YYYY-MM-DD
+            doctor_id (int): Doctor ID
+            clinic_id (int): Clinic ID
+            date (str): Date in YYYY-MM-DD format
             
         Returns:
-            List[int]: 可用时间槽列表
+            List[int]: List of available time slots
         """
-        # 获取医生在该诊所的排班
+        # Get doctor's schedule at the clinic
         doctor_schedule = self.__schedule_repo.get_by_doctor_clinic(doctor_id, clinic_id)
         
-        # 如果没有找到排班，创建一个所有时间槽都可用的排班
+        # If no schedule found, create a default schedule with all time slots available
         if not doctor_schedule:
             doctor_schedule = self.__schedule_repo.create_default_schedule(doctor_id, clinic_id)
         
-        # 获取医生排班中可用时间槽
+        # Get available time slots from doctor's schedule
         available_slots_base = DateUtil.hex_to_time_slots(doctor_schedule.time_slots)
         
-        # 如果医生没有可用时间槽，返回空列表
+        # If doctor has no available time slots, return empty list
         if not available_slots_base:
             return []
         
-        # 检查每个排班中的时间槽在该日期是否可用
+        # Check if each time slot in the schedule is available on that date
         available_slots = []
         for slot in available_slots_base:
             if self.__appointment_repo.is_slot_available(doctor_id, clinic_id, date, slot):
@@ -170,31 +170,31 @@ class AppointmentService:
     def get_available_slots_data(self, clinic_id: Optional[int] = None, 
                                doctor_id: Optional[int] = None, 
                                date: Optional[str] = None) -> List[Tuple]:
-        """获取可用时间槽数据
+        """Get available time slots data
         
         Args:
-            clinic_id (Optional[int]): 诊所ID
-            doctor_id (Optional[int]): 医生ID
-            date (Optional[str]): 日期
+            clinic_id (Optional[int]): Clinic ID
+            doctor_id (Optional[int]): Doctor ID
+            date (Optional[str]): Date
             
         Returns:
-            List[Tuple]: (日期, 时间槽, 医生ID, 诊所ID, 诊所名称, 医生姓名, 星期几, 时间字符串)元组列表
+            List[Tuple]: List of tuples (date, time_slot, doctor_id, clinic_id, clinic_name, doctor_name, day_of_week, time_string)
         """
-        # 如果未指定日期，获取未来7天的日期
+        # If date not specified, get dates for the next 7 days
         if date is None:
             today = DateUtil.get_current_date()
             future_dates = DateUtil.get_date_range(today, 7)
         else:
             future_dates = [date]
         
-        # 如果未指定诊所，获取所有诊所
+        # If clinic not specified, get all clinics
         if clinic_id is None:
             clinics = self.__clinic_repo.get_all()
             clinic_ids = [clinic.id for clinic in clinics]
         else:
             clinic_ids = [clinic_id]
         
-        # 如果未指定医生，获取所有医生
+        # If doctor not specified, get all doctors
         if doctor_id is None:
             doctors = self.__doctor_repo.get_all()
             doctor_ids = [doctor.id for doctor in doctors]
@@ -203,14 +203,14 @@ class AppointmentService:
         
         available_slots_data = []
         
-        # 遍历所有组合
+        # Iterate through all combinations
         for d_id in doctor_ids:
             doctor = self.__doctor_repo.get_by_id(d_id)
             if not doctor:
                 continue
                 
             for c_id in clinic_ids:
-                # 检查医生是否在该诊所工作
+                # Check if doctor works at this clinic
                 if c_id not in doctor.assigned_clinics:
                     continue
                     
@@ -221,7 +221,7 @@ class AppointmentService:
                 for date_str in future_dates:
                     day_of_week = DateUtil.get_day_of_week(date_str)
                     
-                    # 获取可用时间槽
+                    # Get available time slots
                     available_slots = self.get_available_time_slots(d_id, c_id, date_str)
                     
                     if available_slots:
@@ -235,23 +235,23 @@ class AppointmentService:
     
     def make_appointment(self, user_id: int, doctor_id: int, clinic_id: int, 
                        date: str, time_slot: int, reason: str) -> Appointment:
-        """创建预约
+        """Create an appointment
         
         Args:
-            user_id (int): 用户ID
-            doctor_id (int): 医生ID
-            clinic_id (int): 诊所ID
-            date (str): 日期
-            time_slot (int): 时间槽
-            reason (str): 预约原因
+            user_id (int): User ID
+            doctor_id (int): Doctor ID
+            clinic_id (int): Clinic ID
+            date (str): Date
+            time_slot (int): Time slot
+            reason (str): Appointment reason
             
         Returns:
-            Appointment: 创建的预约
+            Appointment: Created appointment
             
         Raises:
-            ValueError: 如果时间槽不可用
+            ValueError: If time slot is not available
         """
-        # 创建预约记录
+        # Create appointment record
         appointment = Appointment(
             user_id=user_id,
             doctor_id=doctor_id,
@@ -262,17 +262,17 @@ class AppointmentService:
             status="Scheduled"
         )
         
-        # 添加预约
+        # Add appointment
         appointment = self.__appointment_repo.add_appointment(appointment)
         
-        # 获取相关实体用于通知
+        # Get related entities for notification
         doctor = self.__doctor_repo.get_by_id(doctor_id)
         clinic = self.__clinic_repo.get_by_id(clinic_id)
         
-        # 创建通知
+        # Create notification
         notification = Notification(
             user_id=user_id,
-            message=f"您已成功预约 {date} {DateUtil.get_time_slot_str(time_slot)} 在 {clinic.name} 与 {doctor.full_name} 的就诊。",
+            message=f"You have successfully scheduled an appointment on {date} at {DateUtil.get_time_slot_str(time_slot)} with {doctor.full_name} at {clinic.name}.",
             date=DateUtil.get_current_date(),
             read=False
         )
@@ -282,23 +282,23 @@ class AppointmentService:
         return appointment
     
     def get_user_appointments(self, user_id: int, future_only: bool = False, history_only: bool = False) -> List[Dict]:
-        """获取用户预约列表
+        """Get user appointments
         
         Args:
-            user_id (int): 用户ID
-            future_only (bool): 是否只返回未来预约
-            history_only (bool): 是否只返回历史预约
+            user_id (int): User ID
+            future_only (bool): Whether to return only future appointments
+            history_only (bool): Whether to return only past appointments
             
         Returns:
-            List[Dict]: 预约信息字典列表
+            List[Dict]: List of appointment information dictionaries
         """
-        # 获取预约列表
+        # Get appointments
         appointments = self.__appointment_repo.get_by_user(user_id)
         
         if not appointments:
             return []
         
-        # 筛选预约
+        # Filter appointments
         today = DateUtil.get_current_date()
         filtered_appointments = []
         
@@ -311,8 +311,8 @@ class AppointmentService:
             clinic = self.__clinic_repo.get_by_id(appointment.clinic_id)
             doctor = self.__doctor_repo.get_by_id(appointment.doctor_id)
             
-            clinic_name = clinic.name if clinic else "未知诊所"
-            doctor_name = doctor.full_name if doctor else "未知医生"
+            clinic_name = clinic.name if clinic else "Unknown Clinic"
+            doctor_name = doctor.full_name if doctor else "Unknown Doctor"
             time_str = DateUtil.get_time_slot_str(appointment.time_slot)
             
             filtered_appointments.append({
@@ -326,30 +326,30 @@ class AppointmentService:
                 "doctor_name": doctor_name,
                 "reason": appointment.reason,
                 "status": appointment.status,
-                "appointment_obj": appointment  # 包含原始对象，便于操作
+                "appointment_obj": appointment  # Include original object for operations
             })
         
         return filtered_appointments
     
     def get_appointment_by_id(self, appointment_id: int) -> Optional[Appointment]:
-        """根据ID获取预约
+        """Get appointment by ID
         
         Args:
-            appointment_id (int): 预约ID
+            appointment_id (int): Appointment ID
             
         Returns:
-            Optional[Appointment]: 预约对象，如果不存在则返回None
+            Optional[Appointment]: Appointment object, None if not found
         """
         return self.__appointment_repo.get_by_id(appointment_id)
     
     def get_appointment_details(self, appointment_id: int) -> Optional[Dict]:
-        """获取预约详情
+        """Get appointment details
         
         Args:
-            appointment_id (int): 预约ID
+            appointment_id (int): Appointment ID
             
         Returns:
-            Optional[Dict]: 预约详情字典，如果不存在则返回None
+            Optional[Dict]: Appointment details dictionary, None if not found
         """
         appointment = self.__appointment_repo.get_by_id(appointment_id)
         
@@ -363,39 +363,39 @@ class AppointmentService:
         details = {
             "id": appointment.id,
             "user_id": appointment.user_id,
-            "user_name": user.name if user else "未知用户",
-            "user_email": user.email if user else "未知邮箱",
+            "user_name": user.name if user else "Unknown User",
+            "user_email": user.email if user else "Unknown Email",
             "date": appointment.date,
             "time_slot": appointment.time_slot,
             "time_str": DateUtil.get_time_slot_str(appointment.time_slot),
             "clinic_id": appointment.clinic_id,
-            "clinic_name": clinic.name if clinic else "未知诊所",
-            "clinic_address": clinic.address if clinic else "未知地址",
+            "clinic_name": clinic.name if clinic else "Unknown Clinic",
+            "clinic_address": clinic.address if clinic else "Unknown Address",
             "doctor_id": appointment.doctor_id,
-            "doctor_name": doctor.full_name if doctor else "未知医生",
+            "doctor_name": doctor.full_name if doctor else "Unknown Doctor",
             "reason": appointment.reason,
             "status": appointment.status,
             "can_cancel": appointment.is_scheduled() and appointment.date >= DateUtil.get_current_date(),
-            "appointment_obj": appointment  # 包含原始对象，便于操作
+            "appointment_obj": appointment  # Include original object for operations
         }
         
         return details
     
     def cancel_appointment(self, appointment: Appointment) -> bool:
-        """取消预约
+        """Cancel appointment
         
         Args:
-            appointment (Appointment): 预约对象
+            appointment (Appointment): Appointment object
             
         Returns:
-            bool: 是否成功取消
+            bool: Whether cancellation was successful
         """
-        # 取消预约
+        # Cancel appointment
         if self.__appointment_repo.cancel_appointment(appointment):
-            # 创建通知
+            # Create notification
             notification = Notification(
                 user_id=appointment.user_id,
-                message=f"您已取消 {appointment.date} {DateUtil.get_time_slot_str(appointment.time_slot)} 的预约。",
+                message=f"You have cancelled your appointment on {appointment.date} at {DateUtil.get_time_slot_str(appointment.time_slot)}.",
                 date=DateUtil.get_current_date(),
                 read=False
             )
@@ -407,23 +407,23 @@ class AppointmentService:
         return False
     
     def filter_appointments(self, user_id: int, params: Dict[str, Any]) -> List[Dict]:
-        """筛选预约
+        """Filter appointments
         
         Args:
-            user_id (int): 用户ID
-            params (Dict[str, Any]): 筛选参数
+            user_id (int): User ID
+            params (Dict[str, Any]): Filter parameters
             
         Returns:
-            List[Dict]: 预约信息字典列表
+            List[Dict]: List of appointment information dictionaries
         """
-        # 管理员用户（ID为-1）可以查看所有预约
+        # Admin user (ID -1) can view all appointments
         if user_id == -1:
             appointments = self.__appointment_repo.get_all()
         else:
-            # 普通用户只能查看自己的预约
+            # Regular users can only view their own appointments
             appointments = self.__appointment_repo.get_by_user(user_id)
         
-        # 筛选预约
+        # Filter appointments
         filtered_appointments = []
         for appointment in appointments:
             if 'clinic_id' in params and params['clinic_id'] is not None and appointment.clinic_id != params['clinic_id']:
@@ -436,8 +436,8 @@ class AppointmentService:
             clinic = self.__clinic_repo.get_by_id(appointment.clinic_id)
             doctor = self.__doctor_repo.get_by_id(appointment.doctor_id)
             
-            clinic_name = clinic.name if clinic else "未知诊所"
-            doctor_name = doctor.full_name if doctor else "未知医生"
+            clinic_name = clinic.name if clinic else "Unknown Clinic"
+            doctor_name = doctor.full_name if doctor else "Unknown Doctor"
             time_str = DateUtil.get_time_slot_str(appointment.time_slot)
             
             filtered_appointments.append({
@@ -452,22 +452,22 @@ class AppointmentService:
                 "doctor_name": doctor_name,
                 "reason": appointment.reason,
                 "status": appointment.status,
-                "appointment_obj": appointment  # 包含原始对象，便于操作
+                "appointment_obj": appointment  # Include original object for operations
             })
         
         return filtered_appointments
 
     def _show_all_appointments(self) -> None:
-        """显示系统所有预约（管理员专用）"""
-        self.print_header("所有预约")
+        """Display all appointments in the system (admin only)"""
+        self.print_header("All Appointments")
         appointments = self.__appointment_service.get_all_appointments()
 
         if not appointments:
-            print("暂无预约记录")
+            print("No appointment records")
             self.wait_for_key()
             return
 
-        print(f"{'ID':<5}{'用户ID':<8}{'日期':<12}{'时间':<18}{'医生':<15}{'诊所':<15}{'状态':<12}")
+        print(f"{'ID':<5}{'User ID':<8}{'Date':<12}{'Time':<18}{'Doctor':<15}{'Clinic':<15}{'Status':<12}")
         print("-" * 90)
         for appt in appointments:
             print(f"{appt['id']:<5}{appt['user_id']:<8}{appt['date']:<12}{appt['time_str']:<18}"
@@ -475,34 +475,34 @@ class AppointmentService:
         self.wait_for_key()
 
     def _cancel_by_id(self) -> None:
-        """管理员手动取消任意预约"""
+        """Admin manually cancels any appointment"""
         try:
-            appt_id = int(input("\n输入要取消的预约ID（0返回）: ").strip())
+            appt_id = int(input("\nEnter appointment ID to cancel (0 to return): ").strip())
             if appt_id == 0:
                 return
             appointment = self.__appointment_service.get_appointment_by_id(appt_id)
             if not appointment or not appointment.is_scheduled():
-                print("预约不存在或状态不可取消")
+                print("Appointment does not exist or cannot be cancelled")
                 self.wait_for_key()
                 return
-            if input("确认取消该预约？(Y/N): ").strip().upper() == "Y":
+            if input("Confirm cancellation? (Y/N): ").strip().upper() == "Y":
                 if self.__appointment_service.cancel_appointment(appointment):
-                    print("已取消")
+                    print("Cancelled")
                 else:
-                    print("取消失败")
+                    print("Cancellation failed")
             else:
-                print("操作取消")
+                print("Operation cancelled")
         except ValueError:
-            print("请输入有效的数字")
+            print("Please enter a valid number")
         self.wait_for_key()
 
     def _search_as_admin(self) -> None:
-        """管理员筛选预约（不限制 user_id）"""
-        dummy_user = User(id=-1)  # 用于绕过 user_id 限制
+        """Admin filters appointments (no user_id restriction)"""
+        dummy_user = User(id=-1)  # Used to bypass user_id restriction
         self.search_appointments(dummy_user)
 
     def get_all_appointments(self) -> List[Dict]:
-        """获取系统中所有预约（管理员视图）"""
+        """Get all appointments in the system (admin view)"""
         appointments = self.__appointment_repo.get_all()
 
         result = []
@@ -515,8 +515,8 @@ class AppointmentService:
                 "date": appointment.date,
                 "time_slot": appointment.time_slot,
                 "time_str": DateUtil.get_time_slot_str(appointment.time_slot),
-                "clinic_name": clinic.name if clinic else "未知",
-                "doctor_name": doctor.full_name if doctor else "未知",
+                "clinic_name": clinic.name if clinic else "Unknown",
+                "doctor_name": doctor.full_name if doctor else "Unknown",
                 "status": appointment.status
             })
         return result
