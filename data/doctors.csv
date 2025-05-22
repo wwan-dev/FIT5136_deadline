@@ -4,3 +4,5 @@ id,full_name,email,assigned_clinics,specialisation
 3,Dr. Michael Johnson,michael.johnson@monash.edu,2,General Practice;Chronic Disease Management
 4,Dr. Sarah Chen,sarah.chen@monash.edu,1;2;3,General Practice;Referral;Vaccination
 5,Dr. David Wilson,david.wilson@monash.edu,3,General Practice;Mental Health 
+6,Dr. Wang,wwan@monash.edu,,Mental health
+7,Hu Zhen,zhu@monash.edu,1,Medical image;Mental health

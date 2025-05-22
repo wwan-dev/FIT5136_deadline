@@ -88,6 +88,11 @@ class BaseRepository(Generic[T]):
         # 将实体转换为字典
         entity_dict = entity.to_dict()
         
+        # 转换列表为分号分隔的字符串（用于CSV存储）
+        for key, value in entity_dict.items():
+            if isinstance(value, list):
+                entity_dict[key] = ";".join([str(item) for item in value])
+        
         # 追加到CSV文件
         FileUtil.append_csv(self.data_file, entity_dict)
         
@@ -104,6 +109,11 @@ class BaseRepository(Generic[T]):
         """
         # 将实体转换为字典
         entity_dict = entity.to_dict()
+        
+        # 转换列表为分号分隔的字符串（用于CSV存储）
+        for key, value in entity_dict.items():
+            if isinstance(value, list):
+                entity_dict[key] = ";".join([str(item) for item in value])
         
         # 更新CSV文件中的行
         FileUtil.update_row(

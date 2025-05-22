@@ -84,6 +84,7 @@ class UserController:
     def _admin_menu(self) -> None:
         while True:
             print("\n===== Admin Menu =====")
+            print(f"Current user: {self._current_user.name}, Role: {self._current_user.role}")
             print("1. Clinic / GP Management")
             print("2. Appointment Management")
             print("3. Reports / Statistics")

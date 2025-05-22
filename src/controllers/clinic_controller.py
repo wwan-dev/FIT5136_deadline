@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-诊所和医生管理控制器类 - 处理诊所和医生的管理功能
+Clinic and Doctor Management Controller - Handles clinic and doctor management functions
 """
 
 import os
@@ -15,60 +15,60 @@ from src.repositories.clinic_repository import ClinicRepository
 from src.repositories.doctor_repository import DoctorRepository
 
 class ClinicController:
-    """诊所和医生管理控制器类"""
+    """Clinic and Doctor Management Controller"""
     
     def __init__(self, user=None):
-        """初始化诊所和医生管理控制器
+        """Initialize clinic and doctor management controller
         
         Args:
-            user (User, optional): 当前用户. Defaults to None.
+            user (User, optional): Current user. Defaults to None.
         """
         self.__clinic_repo = ClinicRepository()
         self.__doctor_repo = DoctorRepository()
         self.__current_user = user
-        self.__should_return_to_main = False  # 是否返回主菜单标志
+        self.__should_return_to_main = False  # Flag to return to main menu
     
     def clear_screen(self):
-        """清屏"""
+        """Clear screen"""
         os.system('cls' if os.name == 'nt' else 'clear')
     
     def print_header(self, title):
-        """打印标题"""
+        """Print title header"""
         self.clear_screen()
         print("=" * 50)
         print(f"{title.center(48)}")
         print()
     
     def wait_for_key(self):
-        """等待用户按键"""
-        input("\n按回车键继续...")
+        """Wait for user to press a key"""
+        input("\nPress Enter to continue...")
     
-    # ================ 诊所管理功能 ================
+    # ================ Clinic Management Functions ================
     def show_all_clinics(self) -> None:
-        """显示所有诊所"""
-        self.print_header("所有诊所")
+        """Display all clinics"""
+        self.print_header("All Clinics")
         
         clinics = self.__clinic_repo.get_all()
         
         if not clinics:
-            print("系统中没有诊所记录")
+            print("No clinic records in the system")
             self.wait_for_key()
             return
         
-        print(f"{'ID':<5}{'名称':<15}{'区域':<10}{'地址':<25}{'电话':<15}")
+        print(f"{'ID':<5}{'Name':<15}{'Suburb':<10}{'Address':<25}{'Phone':<15}")
         print("-" * 70)
         
         for clinic in clinics:
             print(f"{clinic.id:<5}{clinic.name:<15}{clinic.suburb:<10}{clinic.address:<25}{clinic.phone:<15}")
         
-        print("\n请选择操作:")
-        print("1. 添加新诊所")
-        print("2. 编辑诊所")
-        print("3. 删除诊所")
-        print("0. 返回上一级")
-        print("-. 返回主菜单")
+        print("\nSelect an option:")
+        print("1. Add New Clinic")
+        print("2. Edit Clinic")
+        print("3. Delete Clinic")
+        print("0. Return")
+        print("-. Back to Main Menu")
         
-        choice = input("\n请选择: ").strip()
+        choice = input("\nSelect: ").strip()
         
         if choice == "-":
             self.__should_return_to_main = True
@@ -84,31 +84,31 @@ class ClinicController:
         elif choice == "3":
             self.delete_clinic()
         else:
-            print("无效选项")
+            print("Invalid option")
             self.wait_for_key()
     
     def add_clinic(self) -> None:
-        """添加新诊所"""
-        self.print_header("添加新诊所")
+        """Add a new clinic"""
+        self.print_header("Add New Clinic")
         
-        name = input("诊所名称: ").strip()
+        name = input("Clinic Name: ").strip()
         if not name:
-            print("名称不能为空")
+            print("Name cannot be empty")
             self.wait_for_key()
             return
         
-        # 检查诊所名称是否已存在
+        # Check if clinic name already exists
         existing_clinic = self.__clinic_repo.get_by_name(name)
         if existing_clinic:
-            print(f"诊所 '{name}' 已存在")
+            print(f"Clinic '{name}' already exists")
             self.wait_for_key()
             return
         
-        suburb = input("所在区域: ").strip()
-        address = input("详细地址: ").strip()
-        phone = input("联系电话: ").strip()
+        suburb = input("Suburb: ").strip()
+        address = input("Address: ").strip()
+        phone = input("Phone Number: ").strip()
         
-        # 创建新诊所
+        # Create new clinic
         new_clinic = Clinic(
             name=name,
             suburb=suburb,
@@ -116,20 +116,20 @@ class ClinicController:
             phone=phone
         )
         
-        # 保存诊所
+        # Save clinic
         try:
             saved_clinic = self.__clinic_repo.add(new_clinic)
-            print(f"\n成功添加诊所: {saved_clinic.name} (ID: {saved_clinic.id})")
+            print(f"\nSuccessfully added clinic: {saved_clinic.name} (ID: {saved_clinic.id})")
         except Exception as e:
-            print(f"添加诊所失败: {str(e)}")
+            print(f"Failed to add clinic: {str(e)}")
         
         self.wait_for_key()
     
     def edit_clinic(self) -> None:
-        """编辑诊所信息"""
-        self.print_header("编辑诊所")
+        """Edit clinic information"""
+        self.print_header("Edit Clinic")
         
-        clinic_id = input("请输入要编辑的诊所ID (0返回): ").strip()
+        clinic_id = input("Enter clinic ID to edit (0 to return): ").strip()
         
         if clinic_id == "0":
             return
@@ -139,67 +139,67 @@ class ClinicController:
             clinic = self.__clinic_repo.get_by_id(clinic_id)
             
             if not clinic:
-                print(f"找不到ID为 {clinic_id} 的诊所")
+                print(f"Cannot find clinic with ID {clinic_id}")
                 self.wait_for_key()
                 return
                 
-            print(f"\n当前诊所信息:")
+            print(f"\nCurrent clinic information:")
             print(f"ID: {clinic.id}")
-            print(f"名称: {clinic.name}")
-            print(f"区域: {clinic.suburb}")
-            print(f"地址: {clinic.address}")
-            print(f"电话: {clinic.phone}")
+            print(f"Name: {clinic.name}")
+            print(f"Suburb: {clinic.suburb}")
+            print(f"Address: {clinic.address}")
+            print(f"Phone: {clinic.phone}")
             
-            print("\n请选择要编辑的字段:")
-            print("1. 名称")
-            print("2. 区域")
-            print("3. 地址")
-            print("4. 电话")
-            print("0. 返回")
+            print("\nSelect field to edit:")
+            print("1. Name")
+            print("2. Suburb")
+            print("3. Address")
+            print("4. Phone")
+            print("0. Return")
             
-            field = input("\n请选择: ").strip()
+            field = input("\nSelect: ").strip()
             
             if field == "0":
                 return
                 
             if field == "1":
-                new_name = input(f"新名称 (当前: {clinic.name}): ").strip()
+                new_name = input(f"New name (current: {clinic.name}): ").strip()
                 if new_name:
                     clinic.name = new_name
             elif field == "2":
-                new_suburb = input(f"新区域 (当前: {clinic.suburb}): ").strip()
+                new_suburb = input(f"New suburb (current: {clinic.suburb}): ").strip()
                 if new_suburb:
                     clinic.suburb = new_suburb
             elif field == "3":
-                new_address = input(f"新地址 (当前: {clinic.address}): ").strip()
+                new_address = input(f"New address (current: {clinic.address}): ").strip()
                 if new_address:
                     clinic.address = new_address
             elif field == "4":
-                new_phone = input(f"新电话 (当前: {clinic.phone}): ").strip()
+                new_phone = input(f"New phone (current: {clinic.phone}): ").strip()
                 if new_phone:
                     clinic.phone = new_phone
             else:
-                print("无效选项")
+                print("Invalid option")
                 self.wait_for_key()
                 return
             
-            # 更新诊所
+            # Update clinic
             try:
                 self.__clinic_repo.update(clinic)
-                print("\n诊所信息已更新")
+                print("\nClinic information updated")
             except Exception as e:
-                print(f"更新诊所失败: {str(e)}")
+                print(f"Failed to update clinic: {str(e)}")
             
         except ValueError:
-            print("无效的诊所ID")
+            print("Invalid clinic ID")
         
         self.wait_for_key()
     
     def delete_clinic(self) -> None:
-        """删除诊所"""
-        self.print_header("删除诊所")
+        """Delete a clinic"""
+        self.print_header("Delete Clinic")
         
-        clinic_id = input("请输入要删除的诊所ID (0返回): ").strip()
+        clinic_id = input("Enter clinic ID to delete (0 to return): ").strip()
         
         if clinic_id == "0":
             return
@@ -209,58 +209,58 @@ class ClinicController:
             clinic = self.__clinic_repo.get_by_id(clinic_id)
             
             if not clinic:
-                print(f"找不到ID为 {clinic_id} 的诊所")
+                print(f"Cannot find clinic with ID {clinic_id}")
                 self.wait_for_key()
                 return
                 
-            # 检查是否有医生关联到该诊所
+            # Check if there are doctors associated with this clinic
             doctors = self.__doctor_repo.get_by_clinic(clinic_id)
             if doctors:
-                print(f"无法删除诊所，有 {len(doctors)} 名医生关联到该诊所")
-                print("请先将这些医生从该诊所移除")
+                print(f"Cannot delete clinic, there are {len(doctors)} doctors associated with it")
+                print("Please remove these doctors from the clinic first")
                 self.wait_for_key()
                 return
             
-            print(f"\n即将删除诊所: {clinic.name} (ID: {clinic.id})")
-            confirm = input("确认删除? (Y/N): ").strip().upper()
+            print(f"\nAbout to delete clinic: {clinic.name} (ID: {clinic.id})")
+            confirm = input("Confirm deletion? (Y/N): ").strip().upper()
             
             if confirm == "Y":
                 try:
                     self.__clinic_repo.delete(clinic.id)
-                    print("\n诊所已删除")
+                    print("\nClinic deleted")
                 except Exception as e:
-                    print(f"删除诊所失败: {str(e)}")
+                    print(f"Failed to delete clinic: {str(e)}")
             else:
-                print("已取消删除")
+                print("Deletion cancelled")
             
         except ValueError:
-            print("无效的诊所ID")
+            print("Invalid clinic ID")
         
         self.wait_for_key()
     
     def search_clinics(self) -> None:
-        """搜索诊所"""
-        self.print_header("搜索诊所")
+        """Search for clinics"""
+        self.print_header("Search Clinics")
         
-        keyword = input("请输入搜索关键词 (0返回): ").strip()
+        keyword = input("Enter search keyword (0 to return): ").strip()
         
         if keyword == "0":
             return
         
         if not keyword:
-            print("搜索关键词不能为空")
+            print("Search keyword cannot be empty")
             self.wait_for_key()
             return
         
         clinics = self.__clinic_repo.search(keyword)
         
         if not clinics:
-            print(f"没有找到匹配 '{keyword}' 的诊所")
+            print(f"No clinics found matching '{keyword}'")
             self.wait_for_key()
             return
         
-        print(f"\n找到 {len(clinics)} 个匹配的诊所:")
-        print(f"{'ID':<5}{'名称':<15}{'区域':<10}{'地址':<25}{'电话':<15}")
+        print(f"\nFound {len(clinics)} matching clinics:")
+        print(f"{'ID':<5}{'Name':<15}{'Suburb':<10}{'Address':<25}{'Phone':<15}")
         print("-" * 70)
         
         for clinic in clinics:
@@ -268,34 +268,34 @@ class ClinicController:
         
         self.wait_for_key()
     
-    # ================ 医生管理功能 ================
+    # ================ Doctor Management Functions ================
     def show_all_doctors(self) -> None:
-        """显示所有医生"""
-        self.print_header("所有医生")
+        """Display all doctors"""
+        self.print_header("All Doctors")
         
         doctors = self.__doctor_repo.get_all()
         
         if not doctors:
-            print("系统中没有医生记录")
+            print("No doctor records in the system")
             self.wait_for_key()
             return
         
-        print(f"{'ID':<5}{'姓名':<15}{'电子邮箱':<25}{'专业':<25}")
+        print(f"{'ID':<5}{'Name':<15}{'Email':<25}{'Specialisation':<25}")
         print("-" * 70)
         
         for doctor in doctors:
             specialisations = ", ".join(doctor.specialisation)
             print(f"{doctor.id:<5}{doctor.full_name:<15}{doctor.email:<25}{specialisations:<25}")
         
-        print("\n请选择操作:")
-        print("1. 添加新医生")
-        print("2. 编辑医生")
-        print("3. 删除医生")
-        print("4. 管理医生诊所关联")
-        print("0. 返回上一级")
-        print("-. 返回主菜单")
+        print("\nSelect an option:")
+        print("1. Add New Doctor")
+        print("2. Edit Doctor")
+        print("3. Delete Doctor")
+        print("4. Manage Doctor Clinic Association")
+        print("0. Return")
+        print("-. Back to Main Menu")
         
-        choice = input("\n请选择: ").strip()
+        choice = input("\nSelect: ").strip()
         
         if choice == "-":
             self.__should_return_to_main = True
@@ -313,57 +313,57 @@ class ClinicController:
         elif choice == "4":
             self.manage_doctor_clinics()
         else:
-            print("无效选项")
+            print("Invalid option")
             self.wait_for_key()
     
     def add_doctor(self) -> None:
-        """添加新医生"""
-        self.print_header("添加新医生")
+        """Add a new doctor"""
+        self.print_header("Add New Doctor")
         
-        full_name = input("医生姓名: ").strip()
+        full_name = input("Doctor Name: ").strip()
         if not full_name:
-            print("姓名不能为空")
+            print("Name cannot be empty")
             self.wait_for_key()
             return
         
-        email = input("电子邮箱: ").strip()
+        email = input("Email: ").strip()
         if not email:
-            print("电子邮箱不能为空")
+            print("Email cannot be empty")
             self.wait_for_key()
             return
         
-        # 检查电子邮箱是否已存在
+        # Check if email already exists
         existing_doctor = self.__doctor_repo.get_by_email(email)
         if existing_doctor:
-            print(f"电子邮箱 '{email}' 已被使用")
+            print(f"Email '{email}' already exists")
             self.wait_for_key()
             return
         
-        # 专业领域 - 改为在一行输入，用分号分隔
-        spec_input = input("专业领域 (用分号';'分隔多个专业): ").strip()
+        # Specialisation - Changed to input in one line, separated by semicolon
+        spec_input = input("Specialisation (use semicolon ';' to separate multiple specialisations): ").strip()
         specialisations = [spec.strip() for spec in spec_input.split(';') if spec.strip()]
         
-        # 创建新医生
+        # Create new doctor
         new_doctor = Doctor(
             full_name=full_name,
             email=email,
             specialisation=specialisations
         )
         
-        # 保存医生
+        # Save doctor
         try:
             saved_doctor = self.__doctor_repo.add(new_doctor)
-            print(f"\n成功添加医生: {saved_doctor.full_name} (ID: {saved_doctor.id})")
+            print(f"\nSuccessfully added doctor: {saved_doctor.full_name} (ID: {saved_doctor.id})")
         except Exception as e:
-            print(f"添加医生失败: {str(e)}")
+            print(f"Failed to add doctor: {str(e)}")
         
         self.wait_for_key()
     
     def edit_doctor(self) -> None:
-        """编辑医生信息"""
-        self.print_header("编辑医生")
+        """Edit doctor information"""
+        self.print_header("Edit Doctor")
         
-        doctor_id = input("请输入要编辑的医生ID (0返回): ").strip()
+        doctor_id = input("Enter doctor ID to edit (0 to return): ").strip()
         
         if doctor_id == "0":
             return
@@ -373,83 +373,83 @@ class ClinicController:
             doctor = self.__doctor_repo.get_by_id(doctor_id)
             
             if not doctor:
-                print(f"找不到ID为 {doctor_id} 的医生")
+                print(f"Cannot find doctor with ID {doctor_id}")
                 self.wait_for_key()
                 return
                 
-            print(f"\n当前医生信息:")
+            print(f"\nCurrent doctor information:")
             print(f"ID: {doctor.id}")
-            print(f"姓名: {doctor.full_name}")
-            print(f"电子邮箱: {doctor.email}")
-            print(f"专业领域: {', '.join(doctor.specialisation)}")
+            print(f"Name: {doctor.full_name}")
+            print(f"Email: {doctor.email}")
+            print(f"Specialisation: {', '.join(doctor.specialisation)}")
             
-            print("\n请选择要编辑的字段:")
-            print("1. 姓名")
-            print("2. 电子邮箱")
-            print("3. 管理专业领域")
-            print("0. 返回")
+            print("\nSelect field to edit:")
+            print("1. Name")
+            print("2. Email")
+            print("3. Manage Specialisation")
+            print("0. Return")
             
-            field = input("\n请选择: ").strip()
+            field = input("\nSelect: ").strip()
             
             if field == "0":
                 return
                 
             if field == "1":
-                new_name = input(f"新姓名 (当前: {doctor.full_name}): ").strip()
+                new_name = input(f"New name (current: {doctor.full_name}): ").strip()
                 if new_name:
                     doctor.full_name = new_name
             elif field == "2":
-                new_email = input(f"新电子邮箱 (当前: {doctor.email}): ").strip()
+                new_email = input(f"New email (current: {doctor.email}): ").strip()
                 if new_email:
                     doctor.email = new_email
             elif field == "3":
                 self.manage_doctor_specialisations(doctor)
                 return
             else:
-                print("无效选项")
+                print("Invalid option")
                 self.wait_for_key()
                 return
             
-            # 更新医生
+            # Update doctor
             try:
                 self.__doctor_repo.update(doctor)
-                print("\n医生信息已更新")
+                print("\nDoctor information updated")
             except Exception as e:
-                print(f"更新医生失败: {str(e)}")
+                print(f"Failed to update doctor: {str(e)}")
             
         except ValueError:
-            print("无效的医生ID")
+            print("Invalid doctor ID")
         
         self.wait_for_key()
     
     def manage_doctor_specialisations(self, doctor: Doctor) -> None:
-        """管理医生专业领域"""
+        """Manage doctor specialisation"""
         while True:
-            self.print_header(f"管理医生 {doctor.full_name} 的专业领域")
+            self.print_header(f"Manage Doctor {doctor.full_name} Specialisation")
             
-            print("当前专业领域:")
+            print("Current specialisation:")
             if doctor.specialisation:
                 for i, spec in enumerate(doctor.specialisation, 1):
                     print(f"{i}. {spec}")
             else:
-                print("(无)")
+                print("(None)")
             
-            print("\n请选择操作:")
-            print("1. 添加专业领域")
-            print("2. 删除专业领域")
-            print("0. 返回")
+            print("\nSelect an option:")
+            print("1. Add Specialisation")
+            print("2. Delete Specialisation")
+            print("0. Return")
             
-            choice = input("\n请选择: ").strip()
+            choice = input("\nSelect: ").strip()
             
             if choice == "0":
                 return
                 
             if choice == "1":
-                # 添加专业领域，支持一次添加多个，用分号分隔
-                spec_input = input("专业领域 (用分号';'分隔多个专业): ").strip()
+                # Add specialisation, support adding multiple at once, separated by semicolon
+                spec_input = input("Specialisation (use semicolon ';' to separate multiple specialisations): ").strip()
                 new_specs = [spec.strip() for spec in spec_input.split(';') if spec.strip()]
                 
-                # 添加每个专业领域
+                # Add each specialisation
                 added_count = 0
                 for new_spec in new_specs:
                     doctor.add_specialisation(new_spec)
@@ -458,29 +458,29 @@ class ClinicController:
                 if added_count > 0:
                     try:
                         self.__doctor_repo.update(doctor)
-                        print(f"已添加 {added_count} 个专业领域")
+                        print(f"Added {added_count} specialisations")
                     except Exception as e:
-                        print(f"更新失败: {str(e)}")
+                        print(f"Failed to update: {str(e)}")
                 else:
-                    print("未添加任何专业领域")
+                    print("No specialisations added")
                 self.wait_for_key()
             elif choice == "2":
                 if not doctor.specialisation:
-                    print("没有可删除的专业领域")
+                    print("No specialisations to delete")
                     self.wait_for_key()
                     continue
                 
-                # 显示专业领域列表，带编号
-                print("\n当前专业领域:")
+                # Display specialisation list with index
+                print("\nCurrent specialisation:")
                 for i, spec in enumerate(doctor.specialisation, 1):
                     print(f"{i}. {spec}")
                 
                 try:
-                    # 支持删除多个专业领域，用逗号分隔索引
-                    index_input = input("\n请输入要删除的专业领域编号 (多个用逗号分隔): ").strip()
+                    # Support deleting multiple specialisations, separated by comma
+                    index_input = input("\nEnter specialisation index to delete (multiple with comma): ").strip()
                     indexes = [int(idx.strip()) for idx in index_input.split(',') if idx.strip().isdigit()]
                     
-                    # 排序并反转，从后向前删除避免索引变化问题
+                    # Sort and reverse, delete from back to front to avoid index change issues
                     indexes.sort(reverse=True)
                     removed_specs = []
                     
@@ -493,23 +493,23 @@ class ClinicController:
                     if removed_specs:
                         try:
                             self.__doctor_repo.update(doctor)
-                            print(f"已删除专业领域: {', '.join(removed_specs)}")
+                            print(f"Deleted specialisation: {', '.join(removed_specs)}")
                         except Exception as e:
-                            print(f"更新失败: {str(e)}")
+                            print(f"Failed to update: {str(e)}")
                     else:
-                        print("未删除任何专业领域")
+                        print("No specialisations deleted")
                 except ValueError:
-                    print("请输入有效的数字")
+                    print("Enter valid number")
                 self.wait_for_key()
             else:
-                print("无效选项")
+                print("Invalid option")
                 self.wait_for_key()
     
     def delete_doctor(self) -> None:
-        """删除医生"""
-        self.print_header("删除医生")
+        """Delete a doctor"""
+        self.print_header("Delete Doctor")
         
-        doctor_id = input("请输入要删除的医生ID (0返回): ").strip()
+        doctor_id = input("Enter doctor ID to delete (0 to return): ").strip()
         
         if doctor_id == "0":
             return
@@ -519,32 +519,32 @@ class ClinicController:
             doctor = self.__doctor_repo.get_by_id(doctor_id)
             
             if not doctor:
-                print(f"找不到ID为 {doctor_id} 的医生")
+                print(f"Cannot find doctor with ID {doctor_id}")
                 self.wait_for_key()
                 return
             
-            print(f"\n即将删除医生: {doctor.full_name} (ID: {doctor.id})")
-            confirm = input("确认删除? (Y/N): ").strip().upper()
+            print(f"\nAbout to delete doctor: {doctor.full_name} (ID: {doctor.id})")
+            confirm = input("Confirm deletion? (Y/N): ").strip().upper()
             
             if confirm == "Y":
                 try:
                     self.__doctor_repo.delete(doctor.id)
-                    print("\n医生已删除")
+                    print("\nDoctor deleted")
                 except Exception as e:
-                    print(f"删除医生失败: {str(e)}")
+                    print(f"Failed to delete doctor: {str(e)}")
             else:
-                print("已取消删除")
+                print("Deletion cancelled")
             
         except ValueError:
-            print("无效的医生ID")
+            print("Invalid doctor ID")
         
         self.wait_for_key()
     
     def manage_doctor_clinics(self) -> None:
-        """管理医生与诊所的关联"""
-        self.print_header("管理医生诊所关联")
+        """Manage doctor clinic association"""
+        self.print_header("Manage Doctor Clinic Association")
         
-        doctor_id = input("请输入医生ID (0返回): ").strip()
+        doctor_id = input("Enter doctor ID (0 to return): ").strip()
         
         if doctor_id == "0":
             return
@@ -554,29 +554,29 @@ class ClinicController:
             doctor = self.__doctor_repo.get_by_id(doctor_id)
             
             if not doctor:
-                print(f"找不到ID为 {doctor_id} 的医生")
+                print(f"Cannot find doctor with ID {doctor_id}")
                 self.wait_for_key()
                 return
             
             while True:
-                self.print_header(f"管理医生 {doctor.full_name} 的诊所关联")
+                self.print_header(f"Manage Doctor {doctor.full_name} Clinic Association")
                 
-                # 显示当前关联的诊所
-                print("当前关联的诊所:")
+                # Display current associated clinics
+                print("Current associated clinics:")
                 if doctor.assigned_clinics:
                     for clinic_id in doctor.assigned_clinics:
                         clinic = self.__clinic_repo.get_by_id(clinic_id)
                         if clinic:
-                            print(f"ID: {clinic.id}, 名称: {clinic.name}, 区域: {clinic.suburb}")
+                            print(f"ID: {clinic.id}, Name: {clinic.name}, Suburb: {clinic.suburb}")
                 else:
-                    print("(无)")
+                    print("(None)")
                 
-                print("\n请选择操作:")
-                print("1. 添加诊所关联")
-                print("2. 移除诊所关联")
-                print("0. 返回")
+                print("\nSelect an option:")
+                print("1. Add Clinic Association")
+                print("2. Remove Clinic Association")
+                print("0. Return")
                 
-                choice = input("\n请选择: ").strip()
+                choice = input("\nSelect: ").strip()
                 
                 if choice == "0":
                     return
@@ -586,140 +586,140 @@ class ClinicController:
                 elif choice == "2":
                     self.remove_clinic_from_doctor(doctor)
                 else:
-                    print("无效选项")
+                    print("Invalid option")
                     self.wait_for_key()
             
         except ValueError:
-            print("无效的医生ID")
+            print("Invalid doctor ID")
             self.wait_for_key()
     
     def add_clinic_to_doctor(self, doctor: Doctor) -> None:
-        """为医生添加诊所关联"""
-        self.print_header(f"为医生 {doctor.full_name} 添加诊所")
+        """Add clinic association to doctor"""
+        self.print_header(f"Add Clinic to Doctor {doctor.full_name}")
         
-        # 显示所有诊所
+        # Display all clinics
         clinics = self.__clinic_repo.get_all()
         
         if not clinics:
-            print("系统中没有诊所记录")
+            print("No clinic records in the system")
             self.wait_for_key()
             return
         
-        print("可用诊所:")
+        print("Available clinics:")
         available_clinics = []
         for clinic in clinics:
             if clinic.id not in doctor.assigned_clinics:
                 available_clinics.append(clinic)
-                print(f"ID: {clinic.id}, 名称: {clinic.name}, 区域: {clinic.suburb}")
+                print(f"ID: {clinic.id}, Name: {clinic.name}, Suburb: {clinic.suburb}")
         
         if not available_clinics:
-            print("没有可添加的诊所")
+            print("No clinics to add")
             self.wait_for_key()
             return
         
         try:
-            clinic_id = int(input("\n请输入要添加的诊所ID (0返回): ").strip())
+            clinic_id = int(input("\nEnter clinic ID to add (0 to return): ").strip())
             
             if clinic_id == 0:
                 return
             
-            # 检查诊所ID是否有效
+            # Check if clinic ID is valid
             clinic = self.__clinic_repo.get_by_id(clinic_id)
             if not clinic:
-                print(f"找不到ID为 {clinic_id} 的诊所")
+                print(f"Cannot find clinic with ID {clinic_id}")
                 self.wait_for_key()
                 return
             
-            # 检查是否已关联
+            # Check if already associated
             if clinic.id in doctor.assigned_clinics:
-                print(f"医生已关联到诊所 {clinic.name}")
+                print(f"Doctor already associated with clinic {clinic.name}")
                 self.wait_for_key()
                 return
             
-            # 添加关联
+            # Add association
             doctor.add_clinic(clinic.id)
             
-            # 更新医生
+            # Update doctor
             try:
                 self.__doctor_repo.update(doctor)
-                print(f"\n已将医生 {doctor.full_name} 关联到诊所 {clinic.name}")
+                print(f"\nAdded doctor {doctor.full_name} to clinic {clinic.name}")
             except Exception as e:
-                print(f"更新失败: {str(e)}")
+                print(f"Failed to update: {str(e)}")
             
         except ValueError:
-            print("无效的诊所ID")
+            print("Invalid clinic ID")
         
         self.wait_for_key()
     
     def remove_clinic_from_doctor(self, doctor: Doctor) -> None:
-        """移除医生的诊所关联"""
-        self.print_header(f"移除医生 {doctor.full_name} 的诊所关联")
+        """Remove clinic association from doctor"""
+        self.print_header(f"Remove Clinic from Doctor {doctor.full_name}")
         
         if not doctor.assigned_clinics:
-            print("医生没有关联的诊所")
+            print("Doctor has no associated clinics")
             self.wait_for_key()
             return
         
-        print("当前关联的诊所:")
+        print("Current associated clinics:")
         for clinic_id in doctor.assigned_clinics:
             clinic = self.__clinic_repo.get_by_id(clinic_id)
             if clinic:
-                print(f"ID: {clinic.id}, 名称: {clinic.name}, 区域: {clinic.suburb}")
+                print(f"ID: {clinic.id}, Name: {clinic.name}, Suburb: {clinic.suburb}")
         
         try:
-            clinic_id = int(input("\n请输入要移除的诊所ID (0返回): ").strip())
+            clinic_id = int(input("\nEnter clinic ID to remove (0 to return): ").strip())
             
             if clinic_id == 0:
                 return
             
-            # 检查诊所ID是否已关联
+            # Check if clinic ID is associated
             if clinic_id not in doctor.assigned_clinics:
-                print(f"医生未关联到ID为 {clinic_id} 的诊所")
+                print(f"Doctor not associated with ID {clinic_id} clinic")
                 self.wait_for_key()
                 return
             
-            # 获取诊所名称
+            # Get clinic name
             clinic = self.__clinic_repo.get_by_id(clinic_id)
             clinic_name = clinic.name if clinic else f"ID {clinic_id}"
             
-            # 移除关联
+            # Remove association
             doctor.remove_clinic(clinic_id)
             
-            # 更新医生
+            # Update doctor
             try:
                 self.__doctor_repo.update(doctor)
-                print(f"\n已移除医生 {doctor.full_name} 与诊所 {clinic_name} 的关联")
+                print(f"\nRemoved doctor {doctor.full_name} from clinic {clinic_name}")
             except Exception as e:
-                print(f"更新失败: {str(e)}")
+                print(f"Failed to update: {str(e)}")
             
         except ValueError:
-            print("无效的诊所ID")
+            print("Invalid clinic ID")
         
         self.wait_for_key()
     
     def search_doctors(self) -> None:
-        """搜索医生"""
-        self.print_header("搜索医生")
+        """Search for doctors"""
+        self.print_header("Search Doctors")
         
-        keyword = input("请输入搜索关键词 (0返回): ").strip()
+        keyword = input("Enter search keyword (0 to return): ").strip()
         
         if keyword == "0":
             return
         
         if not keyword:
-            print("搜索关键词不能为空")
+            print("Search keyword cannot be empty")
             self.wait_for_key()
             return
         
         doctors = self.__doctor_repo.search(keyword)
         
         if not doctors:
-            print(f"没有找到匹配 '{keyword}' 的医生")
+            print(f"No doctors found matching '{keyword}'")
             self.wait_for_key()
             return
         
-        print(f"\n找到 {len(doctors)} 个匹配的医生:")
-        print(f"{'ID':<5}{'姓名':<15}{'电子邮箱':<25}{'专业':<25}")
+        print(f"\nFound {len(doctors)} matching doctors:")
+        print(f"{'ID':<5}{'Name':<15}{'Email':<25}{'Specialisation':<25}")
         print("-" * 70)
         
         for doctor in doctors:
@@ -728,25 +728,25 @@ class ClinicController:
         
         self.wait_for_key()
     
-    # ================ 主菜单 ================
+    # ================ Main Menu ================
     def run(self) -> None:
-        """运行诊所和医生管理菜单"""
-        self.__should_return_to_main = False  # 重置返回主菜单标志
+        """Run clinic and doctor management menu"""
+        self.__should_return_to_main = False  # Reset return to main menu flag
         
         while True:
             if self.__should_return_to_main:
                 break
                 
-            self.print_header("诊所和医生管理")
+            self.print_header("Clinic and Doctor Management")
             
-            print("1. 查看所有诊所")
-            print("2. 搜索诊所")
-            print("3. 查看所有医生")
-            print("4. 搜索医生")
-            print("0. 返回上一级")
-            print("-. 返回主菜单")
+            print("1. View All Clinics")
+            print("2. Search Clinics")
+            print("3. View All Doctors")
+            print("4. Search Doctors")
+            print("0. Return")
+            print("-. Back to Main Menu")
             
-            choice = input("\n请选择操作: ").strip()
+            choice = input("\nSelect operation: ").strip()
             
             if choice == "1":
                 self.show_all_clinics()
@@ -762,7 +762,7 @@ class ClinicController:
                 self.__should_return_to_main = True
                 break
             else:
-                print("无效选项")
+                print("Invalid option")
                 self.wait_for_key()
         
-        return self.__should_return_to_main  # 返回标志，供调用者判断是否返回主菜单 
+        return self.__should_return_to_main  # Return flag, for caller to determine if returning to main menu 
