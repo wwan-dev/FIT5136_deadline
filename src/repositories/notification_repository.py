@@ -1,0 +1,103 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+通知仓库类
+"""
+
+import os
+from typing import List, Optional
+from datetime import datetime
+from src.entities.notification import Notification
+from src.repositories.base_repository import BaseRepository
+
+class NotificationRepository(BaseRepository[Notification]):
+    """通知仓库类"""
+    
+    def __init__(self):
+        """初始化通知仓库"""
+        data_file = os.path.join("data", "notifications.csv")
+        super().__init__(data_file, Notification)
+    
+    def get_by_patient(self, patient_email: str) -> List[Notification]:
+        """根据患者电子邮箱获取通知列表
+        
+        Args:
+            patient_email (str): 患者电子邮箱
+            
+        Returns:
+            List[Notification]: 通知列表
+        """
+        notifications = self.get_all()
+        return [notification for notification in notifications if notification.patient_email == patient_email]
+    
+    def get_unread_by_patient(self, patient_email: str) -> List[Notification]:
+        """根据患者电子邮箱获取未读通知列表
+        
+        Args:
+            patient_email (str): 患者电子邮箱
+            
+        Returns:
+            List[Notification]: 未读通知列表
+        """
+        notifications = self.get_by_patient(patient_email)
+        return [notification for notification in notifications if not notification.read]
+    
+    def mark_as_read(self, notification_id: int) -> bool:
+        """将通知标记为已读
+        
+        Args:
+            notification_id (int): 通知ID
+            
+        Returns:
+            bool: 如果标记成功返回True，否则返回False
+        """
+        notification = self.get_by_id(notification_id)
+        
+        if not notification:
+            return False
+        
+        notification.mark_as_read()
+        self.update(notification)
+        
+        return True
+    
+    def mark_all_as_read(self, patient_email: str) -> int:
+        """将患者的所有通知标记为已读
+        
+        Args:
+            patient_email (str): 患者电子邮箱
+            
+        Returns:
+            int: 标记为已读的通知数量
+        """
+        unread_notifications = self.get_unread_by_patient(patient_email)
+        count = 0
+        
+        for notification in unread_notifications:
+            notification.mark_as_read()
+            self.update(notification)
+            count += 1
+        
+        return count
+    
+    def create_notification(self, patient_email: str, message: str) -> Notification:
+        """创建新通知
+        
+        Args:
+            patient_email (str): 患者电子邮箱
+            message (str): 通知消息内容
+            
+        Returns:
+            Notification: 创建的通知
+        """
+        today = datetime.now().strftime("%Y-%m-%d")
+        
+        notification = Notification(
+            patient_email=patient_email,
+            message=message,
+            date=today,
+            read=False
+        )
+        
+        return self.add(notification) 
