@@ -53,3 +53,20 @@ class UserService:
         profile = user.to_dict().copy()
         profile.pop("password", None)      # 不向界面暴露密码
         return profile
+
+
+# ────────────────── 新增：更新用户资料 ──────────────────
+    def update_profile(self, user: User, field: str, new_val: str) -> bool:
+        """
+        只允许更新以下字段：name / phone / address / date_of_birth / gender / medical_history
+        email 及 role 不可改。
+        """
+        allowed = {
+            "name", "phone", "address",
+            "date_of_birth", "gender", "medical_history"
+        }
+        if field not in allowed:
+            return False
+        # 调用实体的 setter
+        setattr(user, field, new_val.strip())
+        return self._repo.update_user(user)

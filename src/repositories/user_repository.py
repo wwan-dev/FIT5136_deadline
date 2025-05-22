@@ -68,4 +68,19 @@ class UserRepository(BaseRepository[User]):
         if user and user.password == password:
             return user
         
-        return None 
+        return None
+
+    # ─────────────────────────────────────────────
+    # 新增：保存更新后的用户信息到 users.csv
+    # ─────────────────────────────────────────────
+    def update_user(self, user: User) -> bool:
+        """
+        用 user.id 作为主键，将该用户整行写回 users.csv
+        """
+        from src.utils.file_util import FileUtil
+
+        return FileUtil.update_row(
+            self.data_file,                     # BaseRepository 已持有
+            lambda row: row.get("id") == str(user.id),
+            user.to_dict()
+        )

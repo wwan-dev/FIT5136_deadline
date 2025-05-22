@@ -4,9 +4,9 @@
 """
 user_controller.py
 ==================
-• 登录入口
-• 登录成功后展示用户菜单
-• 当选择“预约管理”时，跳转至 AppointmentController
+• 登录
+• 根据角色跳转到 Patient / Admin 主菜单
+• 本文件只做菜单路由，具体业务分别交给 AppointmentController / AdminController
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ from src.entities.user import User
 
 
 class UserController:
-    """处理用户相关的 CLI 交互"""
+    """顶层用户交互控制器"""
 
     def __init__(self):
         self._svc = UserService()
@@ -26,62 +26,131 @@ class UserController:
 
     # ───────────────────────── 登录流程 ─────────────────────────
     def run(self) -> None:
-        """程序入口：循环直至成功登录或用户选择退出"""
         while True:
             print("\n===== MPMS Login =====")
-            email = input("Email (enter 'q' to quit): ").strip()
+            email = input("Email (q to quit): ").strip()
             if email.lower() == "q":
-                print("Goodbye.")
+                print("Bye.")
                 return
 
-            password = getpass.getpass("Password: ")
-            success, user, msg = self._svc.login(email, password)
+            pwd = getpass.getpass("Password: ")
+            ok, user, msg = self._svc.login(email, pwd)
             print(msg)
-            if success:
+            if ok:
                 self._current_user = user
-                self._user_menu()
-                # 退出登录后 _user_menu() 会 return，重回登录界面
+                if user.is_admin():
+                    self._admin_menu()
+                else:
+                    self._patient_menu()
+                # 菜单返回即登出
+                self._current_user = None
             else:
-                print("Please try again.\n")
+                print()
 
-    # ─────────────────────── 用户二级菜单 ───────────────────────
-    def _user_menu(self) -> None:
-        """登录成功后循环显示菜单，直到用户选择登出"""
-        assert self._current_user is not None
-
+    # --------------- 患者菜单 ---------------
+    def _patient_menu(self) -> None:
         while True:
-            print("\n===== User Menu =====")
-            print("1. View Profile")
+            print("\n===== Patient Menu =====")
+            print("1. Manage Profile")         # ← 修改
             print("2. Manage Appointments")
             print("0. Logout")
+            choice = input("Select: ").strip()
 
-            choice = input("Select an option: ").strip()
             if choice == "1":
-                self._show_profile()
+                self._manage_profile()        # ← 新增
             elif choice == "2":
                 self._enter_appointment_menu()
             elif choice == "0":
-                print("Logged out.\n")
-                self._current_user = None
+                print("Logged out.")
                 return
             else:
-                print("Invalid choice, please try again.")
+                print("Invalid choice.")
 
-    # ───────────────────────── 功能实现 ─────────────────────────
-    def _show_profile(self) -> None:
-        """打印用户资料（不含密码）"""
-        profile = self._svc.get_profile(self._current_user)
-        print("\n--- My Profile ---")
-        for k, v in profile.items():
-            if k != "password":
-                print(f"{k.capitalize():15}: {v or '-'}")
+    # ─────────────────────── 管理员菜单 ───────────────────────
+    def _admin_menu(self) -> None:
+        while True:
+            print("\n===== Admin Menu =====")
+            print("1. View Profile")
+            print("2. Clinic / GP Management")
+            print("3. Appointment Management")
+            print("4. Reports / Statistics")
+            print("0. Logout")
+            choice = input("Select: ").strip()
 
-    # 跳转到预约模块（此处仅做导入和调用，不实现逻辑）
+            if choice == "1":
+                self._show_profile()
+            elif choice == "2":
+                self._enter_admin_controller("clinic")
+            elif choice == "3":
+                self._enter_admin_controller("appointment")
+            elif choice == "4":
+                self._enter_admin_controller("report")
+            elif choice == "0":
+                print("Logged out.")
+                return
+            else:
+                print("Invalid choice.")
+
+    # ───────────────────────── 通用功能 ─────────────────────────
+    # --------------- Profile 管理功能 ---------------
+    def _manage_profile(self) -> None:
+        """
+        显示资料 → 选择字段 → 更新 → 保存
+        """
+        while True:
+            profile = self._svc.get_profile(self._current_user)
+            print("\n--- My Profile ---")
+            for k, v in profile.items():
+                if k != "password":
+                    print(f"{k.capitalize():15}: {v or '-'}")
+
+            print("\nEdit which field?")
+            print(" 1. Name          2. Phone")
+            print(" 3. Address       4. Date of Birth")
+            print(" 5. Gender        6. Medical History")
+            print(" 0. Back")
+            sel = input("Select: ").strip()
+
+            mapping = {
+                "1": "name",
+                "2": "phone",
+                "3": "address",
+                "4": "date_of_birth",
+                "5": "gender",
+                "6": "medical_history"
+            }
+            if sel == "0":
+                return
+            field = mapping.get(sel)
+            if not field:
+                print("Invalid option.")
+                continue
+
+            new_val = input(f"Enter new {field.replace('_', ' ')}: ")
+            if self._svc.update_profile(self._current_user, field, new_val):
+                print("Updated successfully.")
+            else:
+                print("Update failed (field not editable).")
+
     def _enter_appointment_menu(self) -> None:
         try:
             from src.controllers.appointment_controller import AppointmentController
             AppointmentController(self._current_user).run()
         except ModuleNotFoundError:
-            print("Appointment module not available yet.")
+            print("Appointment module not ready.")
         except Exception as e:
-            print(f"Error when opening appointment menu: {e}")
+            print(f"Error: {e}")
+
+    def _enter_admin_controller(self, mode: str) -> None:
+        """
+        根据 mode 跳转到相应管理员子模块
+        mode ∈ {"clinic", "appointment", "report"}
+        """
+        # try:
+        #     from src.controllers.admin_controller import AdminController
+        #     AdminController(self._current_user, mode).run()
+        # except ModuleNotFoundError:
+        #     print("Admin module not ready.")
+        # except Exception as e:
+        #     print(f"Error: {e}")
+        return None
