@@ -50,9 +50,18 @@ class UserController:
     # --------------- 患者菜单 ---------------
     def _patient_menu(self) -> None:
         while True:
+            # 检查未读通知数量
+            unread_count = 0
+            try:
+                from src.controllers.notification_controller import NotificationController
+                unread_count = NotificationController(self._current_user).check_unread_notifications()
+            except Exception:
+                pass
+            
             print("\n===== Patient Menu =====")
             print("1. Manage Profile")
             print("2. Manage Appointments")
+            print(f"3. Notifications {f'({unread_count} unread)' if unread_count > 0 else ''}")
             print("0. Logout")
             print("-. Main Menu")
             choice = input("Select: ").strip()
@@ -61,6 +70,8 @@ class UserController:
                 self._manage_profile()  # ← 子层
             elif choice == "2":
                 self._enter_appointment_menu()  # ← 子层
+            elif choice == "3":
+                self._enter_notification_menu()  # ← 子层
             elif choice == "0":  # ← 登出 = 回到登录界面
                 print("Logged out.")
                 return
@@ -158,6 +169,20 @@ class UserController:
             print("Appointment module not ready.")
         except Exception as e:
             print(f"Error: {e}")
+    
+    def _enter_notification_menu(self) -> None:
+        """进入通知管理菜单"""
+        try:
+            from src.controllers.notification_controller import NotificationController
+            return_to_main = NotificationController(self._current_user).run()
+            if return_to_main:
+                return  # 返回到登录界面
+        except ModuleNotFoundError:
+            print("Notification module not ready.")
+            input("Press Enter to continue...")
+        except Exception as e:
+            print(f"Error: {e}")
+            input("Press Enter to continue...")
 
     def _enter_admin_controller(self, mode: str) -> None:
         """
